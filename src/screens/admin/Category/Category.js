@@ -9,8 +9,9 @@ import theme from "../../theme";
 //Screen
 export default ({navigation}) => {
     let [categories, setCategories] = useState([]);
-    let [modalVisibility, setModalVisibility] = useState(false);
-    let [Cname, setCName] = useState('');
+    let [modalCreateVisibility, setModalCreateVisibility] = useState(false);
+    let [modalEditVisibility, setModalEditVisibility] = useState(false);
+    let [cName, setCName] = useState('');
     useEffect(()=> {
         fetchData();
     }, [])
@@ -27,7 +28,7 @@ export default ({navigation}) => {
         })
     }, [navigation]);
 
-    const fetchData = () => {
+    const fetchData = async () => {
         fetch(
             "https://clothestore-wearesouth01-gmailcom.vercel.app/api/categories",
             {
@@ -38,18 +39,37 @@ export default ({navigation}) => {
             if (response) {
               response.json().then((data) => {
                 //console.log(data);
-                setCategories(data)
+                setCategories(data); 
               });
             }
         });
     }
-    const hideModal = () => {
-        setModalVisibility(false);
+    const hideCreateModal = () => {
+        setModalCreateVisibility(false);
     };
+    const hideEditModal = () => {
+        setModalEditVisibility(false);
+    };
+
+    const createCategory = () => {
+       if(cName != ''){
+        console.log(cName)
+        hideCreateModal()
+       }
+    } 
+
+    const updateCategory = () => {
+        console.log(cName)
+        hideEditModal()
+    } 
+
+    const deleteCategory = (id) => {
+        console.log("Delete ID: " + id)
+    }
 
     const renderCategory = (item) => {       
         return (
-            <Swipeout backgroundColor={'transparent'} buttonWidth= {70} right={[{text: 'Delete', backgroundColor: 'red',onPress:() =>  console.log("delete")}]}>    
+            <Swipeout autoClose={true} backgroundColor={'transparent'} buttonWidth= {70} right={[{text: 'Delete', backgroundColor: 'red',onPress:() =>  deleteCategory(item._id)}]}>    
                 <View style={styles.card}>
                     <TouchableOpacity style={[styles.cardContent,{width: "80%", flexDirection: 'row',alignItems: "center",}]} onPress={() => console.log("Change Status " + item.name)}>
                         <View style={{marginRight:10, height: 10, width: 10, borderRadius: 10, backgroundColor: item.active ? theme.COLORS.PRIMARY : theme.COLORS.ERROR}}/>
@@ -57,7 +77,7 @@ export default ({navigation}) => {
                             {item.name}
                         </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.cardContent,{position: "absolute", right: 10}]} onPress={() => navigation.navigate('createupdate', {item: item})}>
+                    <TouchableOpacity style={[styles.cardContent,{position: "absolute", right: 10}]} onPress={() => {setModalEditVisibility(true), setCName(item.name)}}>
                         <FontAwesome5 name={"edit"} size={15} color={theme.COLORS.PRIMARY}/>
                     </TouchableOpacity>
                 </View>
@@ -69,15 +89,32 @@ export default ({navigation}) => {
     <View style = { styles.container }>
         <CustomModal
             title={"Create"}
-            visible={modalVisibility}
-            onCancel={() => hideModal()}
-            onSave={() => console.log("save")}
+            animation={true}
+            visible={modalCreateVisibility}
+            onCancel={() => hideCreateModal()}
+            onSave={() => createCategory()}
         >
             <TextInput
             autoFocus={true}
             style={styles.input}
             placeholder="Name"
             onChangeText={(text) => setCName(text)}
+            value={cName}
+            />
+        </CustomModal>
+        <CustomModal
+            title={"Edit"}
+            animation={true}
+            visible={modalEditVisibility}
+            onCancel={() => hideEditModal()}
+            onSave={() => updateCategory()}
+        >
+            <TextInput
+            autoFocus={true}
+            style={styles.input}
+            placeholder="Name"
+            onChangeText={(text) => setCName(text)}
+            value={cName}
             />
         </CustomModal>
        <FlatList
@@ -88,7 +125,7 @@ export default ({navigation}) => {
             keyExtractor={(x) => `${x._id}`}
             style={{marginTop: 5}}
         />
-        <TouchableOpacity style={styles.create} onPress={() => setModalVisibility(true)}>
+        <TouchableOpacity style={styles.create} onPress={() => {setModalCreateVisibility(true), setCName('')}}>
             <FontAwesome5 name={"plus"} color= {"white"} size={25}/>
         </TouchableOpacity>
     </View>

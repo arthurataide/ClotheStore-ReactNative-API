@@ -15,13 +15,13 @@ import {
 } from "react-native";
 import theme from "../screens/theme";
 
-export default ({ visible, children, title, onCancel, onSave }) => {
+export default ({ visible, children, title, onCancel, onSave, animation }) => {
   
   return (
     <>
-      <Modal visible={visible} animationType={"fade"} transparent={true} statusBarTranslucent={true} onRequestClose={visible}>
+      <Modal visible={visible} animationType={animation ? "slide" : "fade"} transparent={true} statusBarTranslucent={true} onRequestClose={visible}>
         <TouchableOpacity style={styles.modalCenteredView} activeOpacity={1} onPressOut={onCancel}>
-        <KeyboardAvoidingView enabled behavior={"position"}>
+        <KeyboardAvoidingView enabled behavior={Platform.OS === "android" ? "padding" : "position"}>
           <TouchableWithoutFeedback>
             <View style={styles.modalView}>
                 <Text style={styles.modalTitle}>{title}</Text>

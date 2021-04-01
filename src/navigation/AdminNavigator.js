@@ -7,8 +7,7 @@ import { FontAwesome5 } from '@expo/vector-icons'
 import Animated from 'react-native-reanimated'
 import HomeScreenAdmin from '../screens/admin/Main';
 import CategoryScreen from '../screens/admin/Category/Category';
-import CreateUpdateScreen from '../screens/admin/Category/CreateUpdate';
-import ProductsScreen from '../screens/admin/Products';
+import ProductsScreen from '../screens/admin/Products/Products';
 import OrdersScreen from '../screens/admin/Orders';
 import CustomersScreen from '../screens/admin/Customers';
 
@@ -45,11 +44,7 @@ function CategoryStack() {
       <Stack.Navigator initialRouteName="Category" mode="modal">
         <Stack.Screen 
         name="Category" 
-        component={CategoryScreen} 
-        />
-        <Stack.Screen 
-        name="createupdate" 
-        component={CreateUpdateScreen} 
+        component={CategoryScreen}  
         />
       </Stack.Navigator>
     </NavigationContainer>
