@@ -15,7 +15,7 @@ import Carousel, {
   ParallaxImage,
   Pagination,
 } from "react-native-snap-carousel";
-const { width: screenWidth } = Dimensions.get("window");
+const { height, width: screenWidth } = Dimensions.get("window");
 import TabOptions from "../../components/TabOptions";
 import theme from "../theme";
 import Util from "../../helpers/Util";
@@ -23,8 +23,6 @@ import Storage from "../../backend/LocalStorage";
 import Toast from "react-native-toast-message";
 // import firebase from "firebase";
 import { NavigationActions } from 'react-navigation';
-
-const { height } = Dimensions.get("window");
 
 //Screen
 export default ({ route, navigation }) => {
@@ -270,13 +268,13 @@ const styles = StyleSheet.create({
     alignContent: "center",
     backgroundColor: theme.COLORS.WHITE,
   },
-  card: {
-    width: screenWidth - 60,
-    height: 16 * 30,
-  },
   scrollView: {
     height: height - 200,
     paddingTop: 10,
+  },
+  card: {
+    width: screenWidth - 60,
+    height: 16 * 30,
   },
   image: {
     ...StyleSheet.absoluteFillObject,

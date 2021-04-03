@@ -8,6 +8,7 @@ import Animated from 'react-native-reanimated'
 import HomeScreenAdmin from '../screens/admin/Main';
 import CategoryScreen from '../screens/admin/Category/Category';
 import ProductsScreen from '../screens/admin/Products/Products';
+import CreateUpdateProductScreen from '../screens/admin/Products/CreateUpdate';
 import OrdersScreen from '../screens/admin/Orders';
 import CustomersScreen from '../screens/admin/Customers';
 
@@ -59,6 +60,10 @@ function ProductsStack() {
         <Stack.Screen 
         name="Products" 
         component={ProductsScreen} 
+        />
+        <Stack.Screen 
+        name="CreateUpdate" 
+        component={CreateUpdateProductScreen} 
         />
       </Stack.Navigator>
     </NavigationContainer>
