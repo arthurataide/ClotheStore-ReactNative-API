@@ -1,5 +1,6 @@
 import React, {useState, useLayoutEffect, useEffect} from "react";
 import { ActivityIndicator, TextInput, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity } from "react-native";
+import { SearchBar } from 'react-native-elements';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import Swipeout from 'react-native-swipeout';
 import Util from "../../../helpers/Util";
@@ -8,8 +9,11 @@ import theme from "../../theme";
 
 //Screen
 export default ({navigation}) => {
+    const [searchText, setSearchText] = useState("");
+
     let [products, setProducts] = useState([]);
-    
+    let [clearProducts, setClearProducts] = useState([]);
+
     const data = [
         {
             "active" : true,
@@ -63,10 +67,10 @@ export default ({navigation}) => {
         },
     ]
 
-    let [cName, setCName] = useState('');
-
     useLayoutEffect(() => {
         //checkAuth();
+        setProducts(data)
+        setClearProducts(data)
         navigation.setOptions({
           title: 'Products',
           headerRight: () => (
@@ -89,9 +93,33 @@ export default ({navigation}) => {
               response.json().then((data) => {
                 //console.log(data);
                 setProducts(data); 
+                setClearProducts(data);
               });
             }
         });
+    }
+    const searchByNameClassAndCat = (text) => {
+        console.log(text)
+
+        let filtered = products.filter((x) => {
+            var result;
+            if (x.name.toUpperCase().includes(text.toUpperCase())){
+                result = x.name.toUpperCase().includes(text.toUpperCase())
+            } 
+            else if (x.category.toUpperCase().includes(text.toUpperCase())){
+                result = x.category.toUpperCase().includes(text.toUpperCase())
+            }
+            else if (x.classification.toUpperCase().includes(text.toUpperCase())){
+                result = x.classification.toUpperCase().includes(text.toUpperCase())
+            }
+            return result;
+        })
+        
+        setProducts(filtered)
+        if(text == ''){
+            console.log('Empty')
+            setProducts(clearProducts)
+        }
     }
 
     const renderProduct = (item) => {       
@@ -125,17 +153,30 @@ export default ({navigation}) => {
     }
     return (
         <View style = { styles.container }>
-       <FlatList
-            vertical
-            showsVerticalScrollIndicator={false}
-            data={data}
-            renderItem={({ item }) => renderProduct(item)}
-            keyExtractor={(x) => `${x._id}`}
-            style={{marginTop: 5}}
-        />
-        <TouchableOpacity style={styles.create} onPress={() => navigation.navigate('CreateUpdate')}>
-            <FontAwesome5 name={"plus"} color= {"white"} size={25}/>
-        </TouchableOpacity>
+            <SearchBar
+                containerStyle={styles.searchContainer}
+                inputContainerStyle={{ backgroundColor: "transparent" }}
+                placeholder="Find Products..."
+                showCancel={true}
+                searchIcon={{ size: 24 }}
+                cancelIcon={{ size: 24 }}
+                value={searchText}
+                onChangeText={(text) => {
+                    setSearchText(text)
+                    searchByNameClassAndCat(text)
+                }}
+            />
+            <FlatList
+                vertical
+                showsVerticalScrollIndicator={false}
+                data={products}
+                renderItem={({ item }) => renderProduct(item)}
+                keyExtractor={(x) => `${x._id}`}
+                style={{marginTop: 5}}
+            />
+            <TouchableOpacity style={styles.create} onPress={() => navigation.navigate('CreateUpdate')}>
+                <FontAwesome5 name={"plus"} color= {"white"} size={25}/>
+            </TouchableOpacity>
         </View>
     );
 };
@@ -175,5 +216,10 @@ const styles = StyleSheet.create({
         backgroundColor: theme.COLORS.PRIMARY,
         bottom: 60,
         right: 20,
+    },
+    searchContainer: {
+        backgroundColor: "transparent",
+        borderTopColor: "transparent",
+        borderBottomColor: theme.COLORS.PRIMARY,
     },
   });

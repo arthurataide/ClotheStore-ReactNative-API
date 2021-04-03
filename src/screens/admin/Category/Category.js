@@ -1,5 +1,6 @@
 import React, {useState, useLayoutEffect, useEffect} from "react";
 import { ActivityIndicator, TextInput, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity } from "react-native";
+import { SearchBar } from 'react-native-elements';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import Swipeout from 'react-native-swipeout';
 import CustomModal from "../../../components/CustomModal";
@@ -8,10 +9,16 @@ import theme from "../../theme";
 
 //Screen
 export default ({navigation}) => {
+    const [searchText, setSearchText] = useState("");
+
     let [categories, setCategories] = useState([]);
+    let [clearCategories, setClearCategories] = useState([]);
+    
     let [modalCreateVisibility, setModalCreateVisibility] = useState(false);
     let [modalEditVisibility, setModalEditVisibility] = useState(false);
+    
     let [cName, setCName] = useState('');
+
     useEffect(()=> {
         fetchData();
     }, [])
@@ -40,6 +47,7 @@ export default ({navigation}) => {
               response.json().then((data) => {
                 //console.log(data);
                 setCategories(data); 
+                setClearCategories(data);
               });
             }
         });
@@ -65,6 +73,20 @@ export default ({navigation}) => {
 
     const deleteCategory = (id) => {
         console.log("Delete ID: " + id)
+    }
+
+    const searchByCategory = (text) => {
+        console.log(text)
+
+        let filteredCat = categories.filter((x) => {
+            return x.name.toUpperCase().includes(text.toUpperCase());
+        })
+        
+        setCategories(filteredCat)
+        if(text == ''){
+            console.log('Empty')
+            setCategories(clearCategories)
+        }
     }
 
     const renderCategory = (item) => {       
@@ -117,6 +139,19 @@ export default ({navigation}) => {
             value={cName}
             />
         </CustomModal>
+        <SearchBar
+            containerStyle={styles.searchContainer}
+            inputContainerStyle={{ backgroundColor: "transparent" }}
+            placeholder="Find Categories..."
+            showCancel={true}
+            searchIcon={{ size: 24 }}
+            cancelIcon={{ size: 24 }}
+            value={searchText}
+            onChangeText={(text) => {
+                setSearchText(text)
+                searchByCategory(text)
+            }}
+        />
        <FlatList
             vertical
             showsVerticalScrollIndicator={false}
@@ -176,5 +211,10 @@ const styles = StyleSheet.create({
         borderRadius: 3,
         borderWidth: 1,
         borderColor: theme.COLORS.PRIMARY,
-    }
+    },
+    searchContainer: {
+        backgroundColor: "transparent",
+        borderTopColor: "transparent",
+        borderBottomColor: theme.COLORS.PRIMARY,
+    },
   });
