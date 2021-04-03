@@ -1,33 +1,11 @@
-import { useState, useEffect } from "react";
-import FirebaseConfig from "./FirebaseConfig";
+import Config from "./Config";
 
-export default (path) => {
-  let [data, setData] = useState([]);
-  let [loading, setLoading] = useState(true);
+export default async (path) => {
+  let data;
+  let response = await fetch(Config.BASE_URL + path , {method: "GET", headers: Config.HEADERS});
 
-  useEffect(() => {
-    getDataFromFirebase();
-  }, []);
+  if (response){
+    return await response.json()
+  }
 
-  const getDataFromFirebase = () => {
-    let tmpData = [];
-    //Init Firebase
-    const firebase = FirebaseConfig();
-    //Database
-    const productRef = firebase.database().ref(path);
-
-    //Get data from Firebase
-    productRef.once("value", function (snapshot) {
-      snapshot.forEach(function (childSnapshot) {
-
-        tmpData.push(childSnapshot.val());
-      });
-
-      //Update states
-      setLoading(false);
-      setData(tmpData);
-    });
-  };
-  console.log('getting data from firebase')
-  return { loading, data };
 };

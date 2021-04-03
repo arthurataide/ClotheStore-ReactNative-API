@@ -1,5 +1,5 @@
 import React, {useState} from 'react'
-//import AppNavigator from './src/navigation/AppNavigator';
+import AppNavigator from './src/navigation/AppNavigator';
 import Toast from 'react-native-toast-message';
 import HomeIconWithBadge from './src/components/IconWithBadge'
 import { Ionicons } from '@expo/vector-icons'
@@ -87,7 +87,7 @@ import theme from './src/screens/theme'
 export default function App() {
   return (
     <>
-      <AdminNavigator/>
+      <AppNavigator/>
       <Toast ref={(ref) => Toast.setRef(ref)} />
     </>
   );
