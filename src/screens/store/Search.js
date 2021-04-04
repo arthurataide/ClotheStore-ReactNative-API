@@ -12,7 +12,8 @@ import {
 } from "react-native";
 import { SearchBar } from "react-native-elements";
 import TabOptions from "../../components/TabOptions";
-import fetchData from "../../backend/FetchData";
+import { getData } from "../../backend/FetchData";
+import { getAuthInfo } from "../../backend/AuthStorage";
 import Carousel, { ParallaxImage } from "react-native-snap-carousel";
 import { Ionicons } from "@expo/vector-icons";
 import theme from "../theme";
@@ -72,20 +73,33 @@ const styles = StyleSheet.create({
 export default ({ navigation }) => {
   const [searchText, setSearchText] = useState("");
   const [classificationIndex, setClassificationIndex] = useState("0");
+  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
 
   const ref = useRef(null);
-  let userRoute;
 
-  //Getting categories
-  let { loading, data: categories } = fetchData("category/");
+  const loadCategories = () => {
+    setLoading(true)
+
+    getData('/categories/').then((data) => {
+      if (data) {
+        setCategories(data);
+        setLoading(false);
+      }
+    });
+  }
 
   //SettingUp the top Header style
   React.useLayoutEffect(() => {
-    checkAuth();
     navigation.setOptions({
       title: "ClotheStore",
       headerRight: () => (
-        <TouchableOpacity onPress={() => navigation.navigate(userRoute)}>
+        <TouchableOpacity onPress={() => {
+          checkAuth().then(route =>{
+            navigation.navigate(route)
+          })
+
+        }}>
           <Ionicons
             name={"person"}
             size={25}
@@ -97,15 +111,14 @@ export default ({ navigation }) => {
     });
   }, [navigation]);
 
-  const checkAuth = () => {
-    firebase.auth().onAuthStateChanged(user => {
-        if(user){
-          userRoute = 'account'
-        }else {
-          userRoute = 'signin'
-        }
-    })
-  }
+  const checkAuth = async () => {
+    const user = await getAuthInfo()
+    if (user){
+      return 'account'
+    }else{
+      return 'signin'
+    }
+  };
 
   //Options configuration
   const [tabOptions, setTabOptions] = useState([
@@ -144,6 +157,8 @@ export default ({ navigation }) => {
     });
 
     setTabOptions(newTabOptions);
+
+    loadCategories()
   }, []);
 
   //Search products events
@@ -168,7 +183,7 @@ export default ({ navigation }) => {
   const renderItem = useCallback(
     ({ item, index }, parallaxProps) => (
       <TouchableWithoutFeedback
-        onPress={() => searchByCategory(item.categoryName, item.id)}
+        onPress={() => searchByCategory(item.name, item._id)}
       >
         <View style={styles.card}>
           <ParallaxImage
@@ -180,7 +195,7 @@ export default ({ navigation }) => {
           />
           <View style={{ alignSelf: "stretch", height: 49 }}>
             <Text style={styles.categoryText}>
-              {item.categoryName.toUpperCase()}
+              {item.name.toUpperCase()}
             </Text>
           </View>
         </View>

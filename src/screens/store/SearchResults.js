@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import theme from "../theme";
-import fetchData from "../../backend/FetchData";
+import { getData } from "../../backend/FetchData";
 import Util from "../../helpers/Util";
 
 //Screen Style
@@ -50,7 +50,25 @@ const styles = StyleSheet.create({
 });
 
 export default ({ route, navigation }) => {
-  let { loading, data: products } = fetchData("product/");
+  //let { loading, data: products } = fetchData("product/");
+  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  loadProducts = () => {
+    setLoading(true);
+
+    getData('/products/').then((data) => {
+      if (data) {
+        setProducts(data);
+        setLoading(false);
+      }
+    });
+  }
+
   const {
     productClassification: classification,
     productCategoryId: categoryId,
@@ -123,7 +141,7 @@ export default ({ route, navigation }) => {
             // data={products.find(x => x.classification == classification && x.category == categoryId)}
             data={filteredProducts}
             renderItem={({ item }) => renderCard(item)}
-            keyExtractor={(x) => `${x.id}`}
+            keyExtractor={(x) => `${x._id}`}
           />
         </>
       )}

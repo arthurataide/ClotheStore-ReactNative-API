@@ -14,7 +14,7 @@ import Block from "../../components/Block";
 import theme from "../theme";
 import Util from "../../helpers/Util";
 import Storage from "../../backend/LocalStorage";
-import { getAuthInfo, deleteAuthInfo  } from "../../backend/AuthStorage";
+import { getAuthInfo } from "../../backend/AuthStorage";
 import { getData  } from "../../backend/FetchData";
 import { NavigationEvents, NavigationActions } from "react-navigation";
 
