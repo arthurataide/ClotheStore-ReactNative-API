@@ -8,10 +8,9 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  Modal,
-  Button,
 } from "react-native";
-import fetchData from "../../backend/FetchData";
+import { getData } from "../../backend/FetchData";
+import { getAuthInfo } from "../../backend/AuthStorage";
 import { Ionicons } from "@expo/vector-icons";
 import Util from "../../helpers/Util";
 import theme from "../theme";
@@ -27,7 +26,8 @@ const checkItemExists = (data, id) => {
 };
 
 export default ({ navigation }) => {
-  let { loading, data: products } = fetchData("product/");
+  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState([]);
   let [favoritesData, setFavoritesData] = useState([]);
   let [modalVisibility, setModalVisibility] = useState(false);
   let [selectedItem, setSelectedItem] = useState({});
@@ -42,6 +42,18 @@ export default ({ navigation }) => {
     { key: 4, name: "XL", checked: false, onPress: () => {}, disable: true },
     { key: 5, name: "2XL", checked: false, onPress: () => {}, disable: true },
   ]);
+
+  loadProducts = () => {
+    setLoading(true);
+
+    getData('/products/').then((data) => {
+      if (data) {
+        setProducts(data);
+        console.log(data)
+        setLoading(false);
+      }
+    });
+  }
 
   //Check option onPreess event
   const checkOption = (key) => {
@@ -69,6 +81,8 @@ export default ({ navigation }) => {
     });
 
     setTabOptions(newTabOptions);
+
+    loadProducts()
   }, []);
   /* END SIZE CONFIGURATION */
 
@@ -86,7 +100,7 @@ export default ({ navigation }) => {
         arrayFavorites = favorites;
 
         setFavoritesData(
-          products.filter((x) => checkItemExists(arrayFavorites, x.id))
+          products.filter((x) => checkItemExists(arrayFavorites, x._id))
         );
       });
     }
@@ -95,7 +109,7 @@ export default ({ navigation }) => {
   const removeItem = (item) => {
     Storage.remove({
       key: "favorite",
-      id: item.id,
+      id: item._id,
     }).then(() => {
       console.log(`Item ${item.id} removed from favorites`);
       showFavorites();
@@ -185,11 +199,14 @@ export default ({ navigation }) => {
 
   /** HEADER */
   React.useLayoutEffect(() => {
-    checkAuth();
     navigation.setOptions({
       title: "ClotheStore",
       headerRight: () => (
-        <TouchableOpacity onPress={() => navigation.navigate(userRoute)}>
+        <TouchableOpacity onPress={() => {
+          checkAuth().then(route =>{
+            navigation.navigate(route)
+          })
+        }}>
           <Ionicons
             name={"person"}
             size={25}
@@ -202,14 +219,13 @@ export default ({ navigation }) => {
   }, [navigation]);
   /** END HEADER */
 
-  const checkAuth = () => {
-    firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
-        userRoute = "account";
-      } else {
-        userRoute = "signin";
-      }
-    });
+  const checkAuth = async () => {
+    const user = await getAuthInfo()
+    if (user){
+      return 'account'
+    }else{
+      return 'signin'
+    }
   };
 
   const renderCard = (item) => {
@@ -301,7 +317,7 @@ export default ({ navigation }) => {
             showsVerticalScrollIndicator={false}
             data={favoritesData}
             renderItem={({ item }) => renderCard(item)}
-            keyExtractor={(x) => `${x.id}`}
+            keyExtractor={(x) => `${x._id}`}
           />
         </>
       )}

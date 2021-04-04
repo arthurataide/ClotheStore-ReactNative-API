@@ -138,7 +138,6 @@ export default ({ route, navigation }) => {
             vertical
             showsVerticalScrollIndicator={false}
             numColumns={2}
-            // data={products.find(x => x.classification == classification && x.category == categoryId)}
             data={filteredProducts}
             renderItem={({ item }) => renderCard(item)}
             keyExtractor={(x) => `${x._id}`}
