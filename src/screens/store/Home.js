@@ -109,7 +109,6 @@ export default ({ navigation }) => {
       title: "ClotheStore",
       headerRight: () => (
         <TouchableOpacity onPress={() => {
-          console.log("useLayoutEffect")
           checkAuth().then(route =>{
             navigation.navigate(route)
           })
@@ -128,7 +127,7 @@ export default ({ navigation }) => {
 
   const checkAuth = async () => {
     const user = await getAuthInfo()
-    if (user.length > 0){
+    if (user){
       return 'account'
     }else{
       return 'signin'
