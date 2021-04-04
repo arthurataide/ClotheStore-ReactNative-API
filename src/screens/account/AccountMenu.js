@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  StatusBar,
   TouchableOpacity,
 } from "react-native";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";

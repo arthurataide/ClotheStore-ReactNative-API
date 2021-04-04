@@ -105,6 +105,7 @@ export default ({ route, navigation }) => {
               textContentType="emailAddress"
               value={email}
               onChangeText={(email) => setEmail(email.toLowerCase())}
+              // autoCapitalize='none'
             />
             <Input
               icon="key"
@@ -113,6 +114,7 @@ export default ({ route, navigation }) => {
               textContentType="password"
               value={password}
               onChangeText={(pass) => setPassword(pass.toLowerCase())}
+              autoCapitalize='none'
             />
             <BouncyCheckbox
               textDecoration={true}
