@@ -1,19 +1,15 @@
 import React, { useCallback, useRef, useState, useEffect } from "react";
 import {
-  ActivityIndicator,
   View,
   StyleSheet,
   Text,
   Dimensions,
-  StatusBar,
   TouchableOpacity,
   ScrollView,
-  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Carousel, {
   ParallaxImage,
-  Pagination,
 } from "react-native-snap-carousel";
 const { height, width: screenWidth } = Dimensions.get("window");
 import TabOptions from "../../components/TabOptions";
@@ -21,15 +17,13 @@ import theme from "../theme";
 import Util from "../../helpers/Util";
 import Storage from "../../backend/LocalStorage";
 import Toast from "react-native-toast-message";
-// import firebase from "firebase";
-import { NavigationActions } from 'react-navigation';
+import { getAuthInfo } from "../../backend/AuthStorage";
 
 //Screen
 export default ({ route, navigation }) => {
   const ref = useRef(null);
   const { item } = route.params;
   const [dataImages, setDataImages] = useState([]);
-  const [firebaseUser, setFirebaseUser] = useState({});
 
   let [activeSlide, setActiveSlide] = useState(0);
 
@@ -53,15 +47,13 @@ export default ({ route, navigation }) => {
     return itemSizes;
   };
 
-  const checkAuth = () => {
-    firebase.auth().onAuthStateChanged((user) => {
-      setFirebaseUser(user); //cloning object
-      if (user) {
-        userRoute = "account";
-      } else {
-        userRoute = "signin";
-      }
-    });
+  const checkAuth = async () => {
+    const user = await getAuthInfo()
+    if (user){
+      return 'account'
+    }else{
+      return 'signin'
+    }
   };
 
   //Options configuration
@@ -129,14 +121,14 @@ export default ({ route, navigation }) => {
       }
 
       console.log("- NEW CART ITEM -");
-      console.log(item.id + "-" + selectedSize + "-" + newQty);
+      console.log(item._id + "-" + selectedSize + "-" + newQty);
 
       if (selectedSize) {
         Storage.save({
           key: "cart",
-          id: item.id + "-" + selectedSize,
+          id: item._id + "-" + selectedSize,
           data: {
-            item: item.id,
+            item: item._id,
             size: selectedSize,
             quantity: newQty, 
           },
@@ -160,17 +152,7 @@ export default ({ route, navigation }) => {
 
   const goToCart = async ()=>{
     await addToCart();
-    //navigation.navigate('Cart')
-    //TODO: Implement navigation to CART
     navigation.navigate('TabRoot', { screen: 'Cart' });
-
-    // navigation.navigate({
-    //   routeName: 'home',
-    //   params: {},
-    //   action: navigation.navigate({ routeName: 'Cart'}),
-    // });
-    
-    //navigation.dispatch(navigateAction);
   }
 
 
@@ -178,7 +160,11 @@ export default ({ route, navigation }) => {
     navigation.setOptions({
       title: "ClotheStore",
       headerRight: () => (
-        <TouchableOpacity onPress={() => navigation.navigate("signin")}>
+        <TouchableOpacity onPress={() => {
+          checkAuth().then(route =>{
+            navigation.navigate(route)
+          })
+        }}>
           <Ionicons
             name={"person"}
             size={25}

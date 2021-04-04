@@ -17,7 +17,7 @@ import theme from "../theme";
 import Storage from "../../backend/LocalStorage";
 import { NavigationEvents } from "react-navigation";
 import TabOptions from "../../components/TabOptions";
-import Toast from "react-native-toast-message";
+import * as Toast from "../../components/Toast";
 // import firebase from "firebase";
 import CustomModal from "../../components/CustomModal";
 
@@ -111,7 +111,7 @@ export default ({ navigation }) => {
       key: "favorite",
       id: item._id,
     }).then(() => {
-      console.log(`Item ${item.id} removed from favorites`);
+      console.log(`Item ${item._id} removed from favorites`);
       showFavorites();
     });
   };
@@ -128,11 +128,11 @@ export default ({ navigation }) => {
     let selectedSize = tabOptions.filter((x) => x.checked)[0].name;
     
     console.log("- NEW CART ITEM -");
-    console.log(selectedItem.id + "-" + selectedSize);
+    console.log(selectedItem._id + "-" + selectedSize);
 
     let currentCartData = await Storage.getAllDataForKey("cart");
     let currentCartItem = currentCartData.filter(
-      (x) => x.item == selectedItem.id && x.size == selectedSize
+      (x) => x.item == selectedItem._id && x.size == selectedSize
     )[0];
 
     console.log("- CURRENT CART ITEM -");
@@ -145,22 +145,19 @@ export default ({ navigation }) => {
     }
 
     console.log("- NEW CART ITEM -");
-    console.log(selectedItem.id + "-" + selectedSize + "-" + newQty);
+    console.log(selectedItem._id + "-" + selectedSize + "-" + newQty);
 
     if (selectedSize) {
       Storage.save({
         key: "cart",
-        id: selectedItem.id + "-" + selectedSize,
+        id: selectedItem._id + "-" + selectedSize,
         data: {
-          item: selectedItem.id,
+          item: selectedItem._id,
           size: selectedSize,
           quantity: newQty, //Default quantity
         },
       }).then(() => {
-        Toast.show({
-          text1: "Hello there! 👋",
-          text2: "This item was added into the Cart!",
-        });
+        Toast.show("This item was added into the Cart!");
       });
     }
 
