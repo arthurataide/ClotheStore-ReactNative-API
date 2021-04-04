@@ -16,7 +16,6 @@ import Storage from "../../backend/LocalStorage";
 import Util from "../../helpers/Util";
 import CustomModal from "../../components/CustomModal";
 import TabOptions from "../../components/TabOptions";
-// import firebase from "firebase";
 
 const SHIPPING_FEE = 9.99;
 const TAX_RATE = 0.13;

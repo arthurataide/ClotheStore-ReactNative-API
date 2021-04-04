@@ -18,12 +18,9 @@ export const postData = async (path, data) => {
     let response = await fetch(Config.BASE_URL + path, {
       method: "POST",
       headers: Config.HEADERS,
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
-
-    if (response) {
-      return await response.status;
-    }
+    return response;
   } catch (e) {}
 };
 
@@ -32,12 +29,10 @@ export const updateData = async (path, data) => {
     let response = await fetch(Config.BASE_URL + path, {
       method: "PUT",
       headers: Config.HEADERS,
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
 
-    if (response) {
-      return await response.status;
-    }
+    return response;
   } catch (e) {}
 };
 
@@ -45,11 +40,9 @@ export const deleteData = async (path) => {
   try {
     let response = await fetch(Config.BASE_URL + path, {
       method: "DELETE",
-      headers: Config.HEADERS
+      headers: Config.HEADERS,
     });
 
-    if (response) {
-      return await response.status;
-    }
+    return response;
   } catch (e) {}
 };

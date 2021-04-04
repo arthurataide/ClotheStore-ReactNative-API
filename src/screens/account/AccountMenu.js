@@ -2,24 +2,25 @@ import React, {useState, useLayoutEffect, useEffect} from 'react';
 import { View, Text, StyleSheet, StatusBar, TouchableOpacity } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import theme from "../theme";
+import { deleteAuthInfo } from '../../backend/AuthStorage';
 // import firebase from 'firebase';
 // import FirebaseConfig from "../../backend/FirebaseConfig";
 
 
 export default ({navigation}) => {
     let [userAuth, setUserAuth] = useState();
-    let database = FirebaseConfig();
+    //let database = FirebaseConfig();
     let [fName, setFname] = useState("");
 
     const checkAuth = () => {
-        firebase.auth().onAuthStateChanged((user) => {
-          if (user) {
-            setUserAuth(user.uid);
-            fetchDetails(user.uid);
-          } else {
-            navigation.navigate("home");
-          }
-        });
+        // firebase.auth().onAuthStateChanged((user) => {
+        //   if (user) {
+        //     setUserAuth(user.uid);
+        //     fetchDetails(user.uid);
+        //   } else {
+        //     navigation.navigate("home");
+        //   }
+        // });
     };
     const fetchDetails = (id) => {
         //console.log("fetchDetails " + id);
@@ -32,6 +33,12 @@ export default ({navigation}) => {
             }
           });
     };
+
+    const signOut = ()=>{
+        //Delete user data from local storage
+        deleteAuthInfo()
+        .then(()=> navigation.goBack())
+    }
 
     useEffect(() => {
         const reload = navigation.addListener('focus', () => {
@@ -71,15 +78,7 @@ export default ({navigation}) => {
                 <Ionicons name = { 'md-chevron-forward' } size = { 25 } color={theme.COLORS.PRIMARY} style={styles.icon}/>  
             </TouchableOpacity>
             <View style={styles.separator}></View>
-            <TouchableOpacity style={styles.signOut} onPress={() => {
-                firebase.auth().signOut().then(() => {
-                    // Sign-out successful.
-                    console.log('Sign Out success')
-                    navigation.goBack();
-                  }).catch((error) => {
-                    // An error happened.
-                  });
-            }}>
+            <TouchableOpacity style={styles.signOut} onPress={() => signOut()}>
                 <Text style={styles.signOutText}>Sign Out</Text>
             </TouchableOpacity>
         </View>

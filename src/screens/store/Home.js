@@ -6,7 +6,6 @@ import {
   StyleSheet,
   FlatList,
   Dimensions,
-  Text,
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,7 +14,7 @@ import Block from "../../components/Block";
 import theme from "../theme";
 import Util from "../../helpers/Util";
 import Storage from "../../backend/LocalStorage";
-import { getAuthInfo  } from "../../backend/AuthStorage";
+import { getAuthInfo, deleteAuthInfo  } from "../../backend/AuthStorage";
 import { getData  } from "../../backend/FetchData";
 import { NavigationEvents, NavigationActions } from "react-navigation";
 
@@ -47,6 +46,7 @@ const styles = StyleSheet.create({
 
 //Screen
 export default ({ navigation }) => {
+  //deleteAuthInfo()
   const [arrayFavorites, setArrayFavorites] = useState([]);
 
   let onEndReachedCallDuringMomentum = false;
@@ -54,14 +54,12 @@ export default ({ navigation }) => {
   let [products, setProducts] = useState([]);
   let [loading, setLoading] = useState(false);
   let [isMoreLoading, setIsMoreLoading] = useState(false);
-  let userRoute;
 
   const onRefresh = () => {
     loadProducts();
   };
 
   function loadFavorites() {
-    //console.log('loadFavorites')
     setArrayFavorites([])
     Storage.getIdsForKey("favorite").then((favorites) => {
       setArrayFavorites(favorites);
@@ -70,7 +68,6 @@ export default ({ navigation }) => {
   }
 
   function checkfavorites(itemId) {
-    //console.log('checkfavorites')
     var icon = "heart-outline";
     arrayFavorites.forEach((i) => {
       if (i == itemId) {
@@ -82,7 +79,6 @@ export default ({ navigation }) => {
 
   useEffect(() => {
     loadProducts();
-    //loadFavorites();
   }, []);
 
   loadProducts = () => {
@@ -109,11 +105,16 @@ export default ({ navigation }) => {
   };
 
   useLayoutEffect(() => {
-    checkAuth();
     navigation.setOptions({
       title: "ClotheStore",
       headerRight: () => (
-        <TouchableOpacity onPress={() => navigation.navigate(userRoute)}>
+        <TouchableOpacity onPress={() => {
+          console.log("useLayoutEffect")
+          checkAuth().then(route =>{
+            navigation.navigate(route)
+          })
+          
+        }}>
           <Ionicons
             name={"person"}
             size={25}
@@ -125,15 +126,13 @@ export default ({ navigation }) => {
     });
   }, [navigation]);
 
-  const checkAuth = () => {
-    getAuthInfo()
-      .then(user =>{
-        if (user.length > 0){
-          userRoute = 'account'
-        }else{
-          userRoute = 'signin'
-        }
-      })
+  const checkAuth = async () => {
+    const user = await getAuthInfo()
+    if (user.length > 0){
+      return 'account'
+    }else{
+      return 'signin'
+    }
   };
 
   const reloadData = (payload) => {
@@ -191,7 +190,7 @@ export default ({ navigation }) => {
           }}
           onEndReached={() => {
             if (!onEndReachedCallDuringMomentum && !isMoreLoading) {
-              //getMore();
+
             }
           }}
         />
