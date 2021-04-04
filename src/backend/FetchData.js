@@ -1,11 +1,55 @@
-import Config from "./Config";
+import Config from "./ConfigAPI";
 
-export default async (path) => {
-  let data;
-  let response = await fetch(Config.BASE_URL + path , {method: "GET", headers: Config.HEADERS});
+export const getData = async (path) => {
+  try {
+    let response = await fetch(Config.BASE_URL + path, {
+      method: "GET",
+      headers: Config.HEADERS,
+    });
 
-  if (response){
-    return await response.json()
-  }
+    if (response) {
+      return await response.json();
+    }
+  } catch (e) {}
+};
 
+export const postData = async (path, data) => {
+  try {
+    let response = await fetch(Config.BASE_URL + path, {
+      method: "POST",
+      headers: Config.HEADERS,
+      body: JSON.stringify(data)
+    });
+
+    if (response) {
+      return await response.status;
+    }
+  } catch (e) {}
+};
+
+export const updateData = async (path, data) => {
+  try {
+    let response = await fetch(Config.BASE_URL + path, {
+      method: "PUT",
+      headers: Config.HEADERS,
+      body: JSON.stringify(data)
+    });
+
+    if (response) {
+      return await response.status;
+    }
+  } catch (e) {}
+};
+
+export const deleteData = async (path) => {
+  try {
+    let response = await fetch(Config.BASE_URL + path, {
+      method: "DELETE",
+      headers: Config.HEADERS
+    });
+
+    if (response) {
+      return await response.status;
+    }
+  } catch (e) {}
 };

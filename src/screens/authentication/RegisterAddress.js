@@ -2,8 +2,6 @@ import React, { useState, useLayoutEffect } from "react";
 import { StyleSheet, View, Text, Dimensions, TouchableOpacity, SafeAreaView, Keyboard, TouchableWithoutFeedback} from "react-native";
 import Input from "../../components/Input";
 import theme from '../theme';
-// import FirebaseConfig from "../../backend/FirebaseConfig";
-// import firebase from 'firebase'
 import Toast from 'react-native-toast-message';
 
 

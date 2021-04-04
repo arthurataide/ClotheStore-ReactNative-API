@@ -10,13 +10,13 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import fetchData from "../../backend/FetchData";
-import FirebaseConfig from "../../backend/FirebaseConfig";
 import Card from "../../components/Card";
 import Block from "../../components/Block";
 import theme from "../theme";
 import Util from "../../helpers/Util";
 import Storage from "../../backend/LocalStorage";
+import { getAuthInfo  } from "../../backend/AuthStorage";
+import { getData  } from "../../backend/FetchData";
 import { NavigationEvents, NavigationActions } from "react-navigation";
 
 //Screen Style
@@ -57,7 +57,7 @@ export default ({ navigation }) => {
   let userRoute;
 
   const onRefresh = () => {
-    getProducts();
+    loadProducts();
   };
 
   function loadFavorites() {
@@ -81,19 +81,18 @@ export default ({ navigation }) => {
   }
 
   useEffect(() => {
-    getProducts();
+    loadProducts();
     //loadFavorites();
   }, []);
 
-  getProducts = () => {
+  loadProducts = () => {
     setLoading(true);
 
-    fetchData("/products").then((data) => {
+    getData('/products/').then((data) => {
       if (data) {
         setProducts(data);
         setLoading(false);
         loadFavorites();
-        console.log('loadFavorites')
       }
     });
   };
@@ -127,13 +126,14 @@ export default ({ navigation }) => {
   }, [navigation]);
 
   const checkAuth = () => {
-    // firebase.auth().onAuthStateChanged(user => {
-    //     if(user){
-    //       userRoute = 'account'
-    //     }else {
-    //       userRoute = 'signin'
-    //     }
-    // })
+    getAuthInfo()
+      .then(user =>{
+        if (user.length > 0){
+          userRoute = 'account'
+        }else{
+          userRoute = 'signin'
+        }
+      })
   };
 
   const reloadData = (payload) => {

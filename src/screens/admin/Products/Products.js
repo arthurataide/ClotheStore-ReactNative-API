@@ -1,19 +1,23 @@
 import React, {useState, useLayoutEffect, useEffect} from "react";
 import { ActivityIndicator, TextInput, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity } from "react-native";
+import { SearchBar } from 'react-native-elements';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import Swipeout from 'react-native-swipeout';
-import CustomModal from "../../../components/CustomModal";
+import Util from "../../../helpers/Util";
 
 import theme from "../../theme";
 
 //Screen
 export default ({navigation}) => {
+    const [searchText, setSearchText] = useState("");
+
     let [products, setProducts] = useState([]);
-    
+    let [clearProducts, setClearProducts] = useState([]);
+
     const data = [
         {
             "active" : true,
-            "category" : "3",
+            "category" : "Shorts",
             "classification" : "Men",
             "dateTime" : "2021-03-03 12:13:47",
             "description" : "Nike's first lifestyle Air Max brings you style, comfort and big Air in the Nike Air Max 270. The design draws inspiration from Air Max icons, showcasing Nike's major innovation with its large window for a sleek look.",
@@ -38,8 +42,8 @@ export default ({navigation}) => {
         },
         {
             "active" : true,
-            "category" : "1",
-            "classification" : "Men",
+            "category" : "Pants",
+            "classification" : "Kids",
             "dateTime" : "2021-03-03 12:16:40",
             "description" : "With a sleek, streamline silhouette, our No Sweat Jogger in our ever popular proprietary No Sweat N2X™ fabric blend, let's you do all you do in a day with style, comfort, and ease. Thanks to triple stitching for added durability and the integration of TENCEL for moisture control, this commuter pant is sure to be your go to for every day of the week.",
             "_id" : "002",
@@ -63,10 +67,10 @@ export default ({navigation}) => {
         },
     ]
 
-    let [cName, setCName] = useState('');
-
     useLayoutEffect(() => {
         //checkAuth();
+        setProducts(data)
+        setClearProducts(data)
         navigation.setOptions({
           title: 'Products',
           headerRight: () => (
@@ -89,42 +93,90 @@ export default ({navigation}) => {
               response.json().then((data) => {
                 //console.log(data);
                 setProducts(data); 
+                setClearProducts(data);
               });
             }
         });
+    }
+    const searchByNameClassAndCat = (text) => {
+        console.log(text)
+
+        let filtered = products.filter((x) => {
+            var result;
+            if (x.name.toUpperCase().includes(text.toUpperCase())){
+                result = x.name.toUpperCase().includes(text.toUpperCase())
+            } 
+            else if (x.category.toUpperCase().includes(text.toUpperCase())){
+                result = x.category.toUpperCase().includes(text.toUpperCase())
+            }
+            else if (x.classification.toUpperCase().includes(text.toUpperCase())){
+                result = x.classification.toUpperCase().includes(text.toUpperCase())
+            }
+            return result;
+        })
+        
+        setProducts(filtered)
+        if(text == ''){
+            console.log('Empty')
+            setProducts(clearProducts)
+        }
     }
 
     const renderProduct = (item) => {       
         return (
             <Swipeout autoClose={true} backgroundColor={'transparent'} buttonWidth= {70} right={[{text: 'Delete', backgroundColor: 'red',onPress:() =>  console.log("delete")}]}>    
                 <View style={styles.card}>
-                    <TouchableOpacity style={[styles.cardContent,{width: "80%", flexDirection: 'row',alignItems: "center",}]} onPress={() => console.log("Change Status " + item.name)}>
-                        <View style={{marginRight:10, height: 10, width: 10, borderRadius: 10, backgroundColor: item.active ? theme.COLORS.PRIMARY : theme.COLORS.ERROR}}/>
-                        <Text style={styles.cardText}>
-                            {item.name}
-                        </Text>
+                    <View style={{marginHorizontal:10, height: 10, width: 10, borderRadius: 10, backgroundColor: item.active ? theme.COLORS.PRIMARY : theme.COLORS.ERROR}}/>
+                    <TouchableOpacity style={[styles.cardContent,{flexDirection:'column', width: "80%"}]} onPress={() => console.log("Change Status " + item.name)}>
+                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                            <Text style={styles.cardText}>
+                                {item.name}
+                            </Text>
+                        </View>
+                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                            <Text style={styles.cardText}>
+                                {item.classification} | {item.category}
+                            </Text>
+                        </View>
+                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                            <Text style={styles.cardText}>
+                                {`C${Util.formatter.format(item.price)}`}
+                            </Text>
+                        </View>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.cardContent,{position: "absolute", right: 10}]} onPress={() => console.log("edit")}>
+                    <TouchableOpacity style={[styles.cardContent,{position: "absolute", right: 10}]} onPress={() => navigation.navigate('CreateUpdate', {item: item})}>
                         <FontAwesome5 name={"edit"} size={15} color={theme.COLORS.PRIMARY}/>
                     </TouchableOpacity>
                 </View>
             </Swipeout>
         )
     }
-
     return (
         <View style = { styles.container }>
-       <FlatList
-            vertical
-            showsVerticalScrollIndicator={false}
-            data={data}
-            renderItem={({ item }) => renderProduct(item)}
-            keyExtractor={(x) => `${x._id}`}
-            style={{marginTop: 5}}
-        />
-        <TouchableOpacity style={styles.create} onPress={() => console.log("create")}>
-            <FontAwesome5 name={"plus"} color= {"white"} size={25}/>
-        </TouchableOpacity>
+            <SearchBar
+                containerStyle={styles.searchContainer}
+                inputContainerStyle={{ backgroundColor: "transparent" }}
+                placeholder="Find Products..."
+                showCancel={true}
+                searchIcon={{ size: 24 }}
+                cancelIcon={{ size: 24 }}
+                value={searchText}
+                onChangeText={(text) => {
+                    setSearchText(text)
+                    searchByNameClassAndCat(text)
+                }}
+            />
+            <FlatList
+                vertical
+                showsVerticalScrollIndicator={false}
+                data={products}
+                renderItem={({ item }) => renderProduct(item)}
+                keyExtractor={(x) => `${x._id}`}
+                style={{marginTop: 5}}
+            />
+            <TouchableOpacity style={styles.create} onPress={() => navigation.navigate('CreateUpdate')}>
+                <FontAwesome5 name={"plus"} color= {"white"} size={25}/>
+            </TouchableOpacity>
         </View>
     );
 };
@@ -165,13 +217,9 @@ const styles = StyleSheet.create({
         bottom: 60,
         right: 20,
     },
-    input:{
-        height: 40,
-        width: Dimensions.get("screen").width - 10,
-        margin: 12,
-        paddingLeft: 10,
-        borderRadius: 3,
-        borderWidth: 1,
-        borderColor: theme.COLORS.PRIMARY,
-    }
+    searchContainer: {
+        backgroundColor: "transparent",
+        borderTopColor: "transparent",
+        borderBottomColor: theme.COLORS.PRIMARY,
+    },
   });

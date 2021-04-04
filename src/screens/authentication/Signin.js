@@ -8,19 +8,19 @@ import theme from '../theme';
 // import firebase from "firebase";
 import Toast from 'react-native-toast-message';
 import { FontAwesome5 } from '@expo/vector-icons';
-
+import { postData } from "../../backend/FetchData";
 
 const { width, height } = Dimensions.get("screen");
 
 export default ({route, navigation}) => {
 
   // let database = FirebaseConfig();
-  // const [isSelected, setSelection] = useState(false);
-  // const [email, setEmail] = useState('');
-  // const [password, setPassword] = useState('');
-  // let [loading, setLoading] = useState(false);
-  // let nextScreen = route.params?.nextScreen;
-  // let cartData = route.params?.cartData
+  const [isSelected, setSelection] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  let [loading, setLoading] = useState(false);
+  let nextScreen = route.params?.nextScreen;
+  let cartData = route.params?.cartData
 
   // const isUserEqual = (googleUser, firebaseUser) => {
   //   if (firebaseUser) {
@@ -139,31 +139,34 @@ export default ({route, navigation}) => {
   //   }
   // }
 
-  // const checklogin = () => {
-  //   if(email != '' && password != ''){
-  //     firebase.auth()
-  //     .signInWithEmailAndPassword(email, password)
-  //     .then((user) => {
-  //       if (nextScreen != undefined){
-  //         navigation.replace(nextScreen, {cartData: cartData, userId:user.uid});  
-  //       }else{
-  //         navigation.popToTop()
-  //       }
+  const checklogin = () => {
+    if(email != '' && password != ''){
+
+      postData()
+
+    //   firebase.auth()
+    //   .signInWithEmailAndPassword(email, password)
+    //   .then((user) => {
+    //     if (nextScreen != undefined){
+    //       navigation.replace(nextScreen, {cartData: cartData, userId:user.uid});  
+    //     }else{
+    //       navigation.popToTop()
+    //     }
         
-  //     })
-  //     .catch(error => console.log(error))
-  //   } else {
-  //     Toast.show({
-  //       type: 'error',
-  //       text1: 'Attention! 👋',
-  //       text2: 'Fields can not be empty !',
-  //       position: 'bottom',
-  //       topOffset: 60,
-  //       bottomOffset: 80,
-  //     });
-  //   }
+    //   })
+    //   .catch(error => console.log(error))
+    // } else {
+    //   Toast.show({
+    //     type: 'error',
+    //     text1: 'Attention! 👋',
+    //     text2: 'Fields can not be empty !',
+    //     position: 'bottom',
+    //     topOffset: 60,
+    //     bottomOffset: 80,
+    //   });
+    }
     
-  // }
+  }
   
 
   // const checkAuth = () => {
