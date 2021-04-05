@@ -1,5 +1,5 @@
 import React, {useCallback, useState, useLayoutEffect, useEffect, useRef} from "react";
-import { ScrollView, TextInput, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity, InteractionManager } from "react-native";
+import { ScrollView, TextInput, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity } from "react-native";
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { TextInputMask } from 'react-native-masked-text'
 import Carousel, {
@@ -24,7 +24,6 @@ export default ({route, navigation}) => {
     const [dataImages, setDataImages] = useState([]);
     const [activeSlide, setActiveSlide] = useState(0);
 
-    const [id, setId] = useState('');
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [price, setPrice] = useState('');
@@ -100,7 +99,6 @@ export default ({route, navigation}) => {
             let {item} = route.params
 
             setDataImages(item.pictures)
-            setId(item._id)
             setName(item.name)
             setDescription(item.description)
             setPrice(item.price)
@@ -119,7 +117,7 @@ export default ({route, navigation}) => {
                 default:
                     break;
             }
-            setSelectedCategory(item.category) 
+            setSelectedCategory(item.category_id) 
             setSizesSelected(item.size) 
 
             let newTabOptions = [];
@@ -225,12 +223,6 @@ export default ({route, navigation}) => {
                 <View style={styles.detailsContainer}>
                     <TextInput
                         style={styles.input}
-                        placeholder="Product ID"
-                        value={id}
-                        onChangeText={(text) => setId(text)}
-                    />
-                    <TextInput
-                        style={styles.input}
                         placeholder="Product Name"
                         value={name}
                         onChangeText={(text) => setName(text)}
@@ -294,7 +286,7 @@ export default ({route, navigation}) => {
                         {
                             categories.map((x) => {
                                 return (
-                                    <Picker.Item key={x._id} label={x.name} value={x.name} />
+                                    <Picker.Item key={x._id} label={x.name} value={x._id} />
                                 )
                             })
                         }
@@ -349,6 +341,7 @@ const styles = StyleSheet.create({
     },
     detailsContainer: {
         paddingHorizontal: 5,
+        paddingVertical: 5
     },
     input:{
         height: 40,

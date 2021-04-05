@@ -1,5 +1,5 @@
 import React, {useState, useLayoutEffect, useEffect} from "react";
-import { ActivityIndicator, TextInput, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity } from "react-native";
+import { RefreshControl, TextInput, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity } from "react-native";
 import { SearchBar } from 'react-native-elements';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import Swipeout from 'react-native-swipeout';
@@ -13,64 +13,15 @@ export default ({navigation}) => {
 
     let [products, setProducts] = useState([]);
     let [clearProducts, setClearProducts] = useState([]);
+    let [loading, setLoading] = useState(false);
 
-    const data = [
-        {
-            "active" : true,
-            "category" : "Shorts",
-            "classification" : "Men",
-            "dateTime" : "2021-03-03 12:13:47",
-            "description" : "Nike's first lifestyle Air Max brings you style, comfort and big Air in the Nike Air Max 270. The design draws inspiration from Air Max icons, showcasing Nike's major innovation with its large window for a sleek look.",
-            "_id" : "001",
-            "name" : "Nike Air Max 270",
-            "pictures" : [ {
-              "name" : "4205496_a1.png",
-              "storagePath" : "1614791518679.png",
-              "url" : "https://firebasestorage.googleapis.com/v0/b/clothestore-484a8.appspot.com/o/pictures%2F1614791552302.png?alt=media&token=cd3eb025-f0ce-41e7-ad7c-9c679db7b71b"
-            }, {
-              "name" : "4205496_a2.png",
-              "storagePath" : "1614791552302.png",
-              "url" : "https://firebasestorage.googleapis.com/v0/b/clothestore-484a8.appspot.com/o/pictures%2F1614791552302.png?alt=media&token=cd3eb025-f0ce-41e7-ad7c-9c679db7b71b"
-            }, {
-              "name" : "4205496_a2.png",
-              "storagePath" : "1614791669657.png",
-              "url" : "https://firebasestorage.googleapis.com/v0/b/clothestore-484a8.appspot.com/o/pictures%2F1614791669657.png?alt=media&token=79d3655f-2eca-4c2c-b52f-870656004437"
-            } ],
-            "price" : 190,
-            "size" : [ "S", "M", "L" ],
-            "stock" : 80
-        },
-        {
-            "active" : true,
-            "category" : "Pants",
-            "classification" : "Kids",
-            "dateTime" : "2021-03-03 12:16:40",
-            "description" : "With a sleek, streamline silhouette, our No Sweat Jogger in our ever popular proprietary No Sweat N2X™ fabric blend, let's you do all you do in a day with style, comfort, and ease. Thanks to triple stitching for added durability and the integration of TENCEL for moisture control, this commuter pant is sure to be your go to for every day of the week.",
-            "_id" : "002",
-            "name" : "NO SWEAT JOGGER",
-            "pictures" : [ {
-              "name" : "Mustard-Athletic-Jogger-Back_600x.jpg",
-              "storagePath" : "1614791764536.jpg",
-              "url" : "https://firebasestorage.googleapis.com/v0/b/clothestore-484a8.appspot.com/o/pictures%2F1614791764536.jpg?alt=media&token=91fef0b9-3683-434b-97f9-2f7d70428757"
-            }, {
-              "name" : "Black-Athletic-Jogger-Front_600x.jpg",
-              "storagePath" : "1614791770640.jpg",
-              "url" : "https://firebasestorage.googleapis.com/v0/b/clothestore-484a8.appspot.com/o/pictures%2F1614791770640.jpg?alt=media&token=26a91927-8ee9-46ad-8e54-c3d3c9643f33"
-            }, {
-              "name" : "Mustard-Athletic-Jogger-Side_600x.jpg",
-              "storagePath" : "1614791783593.jpg",
-              "url" : "https://firebasestorage.googleapis.com/v0/b/clothestore-484a8.appspot.com/o/pictures%2F1614791783593.jpg?alt=media&token=df52616e-d315-4061-86aa-62191497b555"
-            } ],
-            "price" : 110,
-            "size" : [ "XS", "M", "L" ],
-            "stock" : 15
-        },
-    ]
+    let [categories, setCategories] = useState([]);
 
     useLayoutEffect(() => {
         //checkAuth();
-        setProducts(data)
-        setClearProducts(data)
+        // setProducts(data)
+        // setClearProducts(data)
+        fetchData()
         navigation.setOptions({
           title: 'Products',
           headerRight: () => (
@@ -82,8 +33,9 @@ export default ({navigation}) => {
     }, [navigation]);
 
     const fetchData = async () => {
+        setLoading(true)
         fetch(
-            "https://clothestore-wearesouth01-gmailcom.vercel.app/api/categories",
+            "https://clothestore-wearesouth01-gmailcom.vercel.app/api/products",
             {
               method: "GET",
               headers: { "Content-Type": "application/json" },
@@ -94,10 +46,47 @@ export default ({navigation}) => {
                 //console.log(data);
                 setProducts(data); 
                 setClearProducts(data);
+                setLoading(false)
+              });
+            }
+        });
+        fetch(
+            "https://clothestore-wearesouth01-gmailcom.vercel.app/api/categories",
+            {
+              method: "GET",
+              headers: { "Content-Type": "application/json" },
+            }
+        ).then((response) => {
+            if (response) {
+              response.json().then((data) => {
+                //console.log(data);
+                setCategories(data); 
+                setLoading(false)
               });
             }
         });
     }
+
+    const onRefresh = () => {
+        fetchData();
+    };
+
+    const getCategory = (id) => {
+        var name
+        categories.map((x) => {
+            if(x._id === id){
+                name = x.name
+            }
+        })
+        return name
+    }
+
+    const searchCat = (text) => {
+        return categories.filter((x) => {
+            return x.name.toUpperCase().includes(text.toUpperCase())
+        })
+    }
+
     const searchByNameClassAndCat = (text) => {
         console.log(text)
 
@@ -106,12 +95,17 @@ export default ({navigation}) => {
             if (x.name.toUpperCase().includes(text.toUpperCase())){
                 result = x.name.toUpperCase().includes(text.toUpperCase())
             } 
-            else if (x.category.toUpperCase().includes(text.toUpperCase())){
-                result = x.category.toUpperCase().includes(text.toUpperCase())
+            else if (searchCat(text).length > 0){
+                //console.log(searchCat(text)[0]._id)
+                console.log("-------------------")
+                if(x.category_id.includes(searchCat(text)[0]._id)){
+                    result = x.category_id.includes(searchCat(text)[0]._id);
+                }
             }
             else if (x.classification.toUpperCase().includes(text.toUpperCase())){
                 result = x.classification.toUpperCase().includes(text.toUpperCase())
             }
+            //console.log(searchCat(text))
             return result;
         })
         
@@ -125,8 +119,7 @@ export default ({navigation}) => {
     const renderProduct = (item) => {       
         return (
             <Swipeout autoClose={true} backgroundColor={'transparent'} buttonWidth= {70} right={[{text: 'Delete', backgroundColor: 'red',onPress:() =>  console.log("delete")}]}>    
-                <View style={styles.card}>
-                    <View style={{marginHorizontal:10, height: 10, width: 10, borderRadius: 10, backgroundColor: item.active ? theme.COLORS.PRIMARY : theme.COLORS.ERROR}}/>
+                <View style={[styles.card, {borderLeftWidth: 8, borderLeftColor: item.active ? theme.COLORS.PRIMARY : theme.COLORS.ERROR}]}>
                     <TouchableOpacity style={[styles.cardContent,{flexDirection:'column', width: "80%"}]} onPress={() => console.log("Change Status " + item.name)}>
                         <View style={{flexDirection: 'row', alignItems: 'center'}}>
                             <Text style={styles.cardText}>
@@ -135,7 +128,7 @@ export default ({navigation}) => {
                         </View>
                         <View style={{flexDirection: 'row', alignItems: 'center'}}>
                             <Text style={styles.cardText}>
-                                {item.classification} | {item.category}
+                                {item.classification} | {getCategory(item.category_id)}
                             </Text>
                         </View>
                         <View style={{flexDirection: 'row', alignItems: 'center'}}>
@@ -167,6 +160,12 @@ export default ({navigation}) => {
                 }}
             />
             <FlatList
+                refreshControl={
+                    <RefreshControl
+                    refreshing={loading}
+                    onRefresh={onRefresh}
+                    />
+                }
                 vertical
                 showsVerticalScrollIndicator={false}
                 data={products}
@@ -194,12 +193,14 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginHorizontal: 5,
         marginVertical: 5,
-        borderColor: theme.COLORS.TITLE,
+        borderTopColor: theme.COLORS.TITLE,
+        borderRightColor: theme.COLORS.TITLE,
+        borderBottomColor: theme.COLORS.TITLE,
         borderWidth: 1,
         borderRadius: 5,
     },
     cardContent: {
-        paddingHorizontal: 10,
+        paddingHorizontal: 15,
         paddingVertical: 15,
     },
     cardText: {

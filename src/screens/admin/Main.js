@@ -1,5 +1,5 @@
 import React, {useState, useLayoutEffect, useEffect} from "react";
-import { ActivityIndicator, ScrollView, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity } from "react-native";
+import { StatusBar, ScrollView, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity } from "react-native";
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import {VictoryChart, VictoryBar, VictoryLegend, VictoryAxis, VictoryPie} from 'victory-native';
 import theme from "../theme";
@@ -110,22 +110,23 @@ export default ({navigation}) => {
 
   return (
     <View style = { styles.container }>
+        <StatusBar barStyle="light-content" backgroundColor={theme.COLORS.PRIMARY}></StatusBar>
         <ScrollView showsVerticalScrollIndicator={false}>
             <View style={styles.cardsContainer}>
                 <View style={{flexDirection: 'row', justifyContent:'space-between'}}>
-                    <TouchableOpacity style={styles.menu} >
+                    <TouchableOpacity style={styles.menu} onPress={() => navigation.navigate('Category')}>
                         <FontAwesome5 name="layer-group" size={20} color={theme.COLORS.TITLE}/>
                         <Text style={styles.text}>Categories</Text>
                         <Text style={styles.count}>{categoryCount}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.menu} >
+                    <TouchableOpacity style={styles.menu} onPress={() => navigation.navigate('Products')}>
                         <FontAwesome5 name="product-hunt" size={20} color={theme.COLORS.TITLE} />
                         <Text style={styles.text}>Products</Text>
                         <Text style={styles.count}>{productCount}</Text>
                     </TouchableOpacity>
                 </View>
                 <View style={{flexDirection: 'row', justifyContent:'space-between'}}>
-                    <TouchableOpacity style={styles.menu} >
+                    <TouchableOpacity style={styles.menu} onPress={() => navigation.navigate('Orders')}>
                         <FontAwesome5 name="clipboard-list" size={20} color={theme.COLORS.TITLE} />
                         <Text style={styles.text}>Orders</Text>
                         <Text style={styles.count}>{orderCount}</Text>
