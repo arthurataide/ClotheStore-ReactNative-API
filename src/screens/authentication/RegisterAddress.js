@@ -1,129 +1,179 @@
 import React, { useState, useLayoutEffect } from "react";
-import { StyleSheet, View, Text, Dimensions, TouchableOpacity, SafeAreaView, Keyboard, TouchableWithoutFeedback} from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  Dimensions,
+  TouchableOpacity,
+  SafeAreaView,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from "react-native";
 import Input from "../../components/Input";
-import theme from '../theme';
-// import FirebaseConfig from "../../backend/FirebaseConfig";
-// import firebase from 'firebase'
-import Toast from 'react-native-toast-message';
-
+import theme from "../theme";
+import * as Toast from "../../components/Toast";
+import { postData, updateData } from "../../backend/FetchData";
 
 const { width, height } = Dimensions.get("screen");
 
 export default ({ route, navigation }) => {
+  const { user } = route.params;
+  let [address, setAddress] = useState("");
+  let [city, setCity] = useState("");
+  let [state, setState] = useState("");
+  let [country, setCountry] = useState("");
+  let [zip, setZip] = useState("");
 
-  // const database = FirebaseConfig();
-  // const { user } = route.params;
-  // console.log(user)  
+  const saveData = async () => {
+    const credentials = {
+      email: user.email.toLowerCase(),
+      password: user.password,
+    };
 
-  // let [address, setAddress] = useState('')
-  // let [state, setState] = useState('')
-  // let [country, setCountry] = useState('')
-  // let [zip, setZip] = useState('')
-  
+    const userInfo = {
+      email: user.email.toLowerCase(),
+      profilePicture: user.profilePicture,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      address: address,
+      city: city,
+      state: state,
+      country: country,
+      zip: zip,
+    };
 
-  // const saveData = () => {
-  //   if (user.uid != undefined){
-  //     database.database()
-  //     .ref('/userInfo/' + user.uid)
-  //     .set({
-  //         email: user.email,
-  //         profilePicture: user.profilePicture,
-  //         firstName: user.firstName,
-  //         lastName: user.lastName,
-  //         address: address,
-  //         state: state,
-  //         country: country,
-  //         zip: zip
-  //     }).then(function (snapshot){
-  //       navigation.popToTop();
-  //     })
-  //   } else {
-  //     firebase.auth()
-  //           .createUserWithEmailAndPassword(user.email, user.password)
-  //           .then((result) => {
-  //             database.database()
-  //             .ref('/userInfo/' + result.user.uid)
-  //             .set({
-  //                 email: user.email,
-  //                 firstName: user.firstName,
-  //                 lastName: user.lastName,
-  //                 address: address,
-  //                 state: state,
-  //                 country: country,
-  //                 zip: zip
-  //             }).then(function (snapshot){
-  //               navigation.popToTop();
-  //             })
-  //           })
-  //           .catch(error => {
-  //             console.log(error.code)
-  //             if(error.code == 'auth/email-already-in-use') {
-  //               Toast.show({
-  //                 type: 'error',
-  //                 text1: 'Attention! 👋',
-  //                 text2: 'Email is already been used !',
-  //                 position: 'bottom',
-  //                 topOffset: 60,
-  //                 bottomOffset: 80,
-  //               });
-  //             }
-  //           })
-  //   }
-    
-  // }
+    try {
+      if (user._id != undefined) {
+        const responseUserInfo = await updateData("/auth/user-info/", userInfo);
 
-  // const validate = () => {
-  //     if (address != '' && state != '' && country != '' && zip != ''){
-  //       console.log('not Empty')
-  //       return true
-  //     } else {
-  //       console.log('Empty')
-  //       Toast.show({
-  //         type: 'error',
-  //         text1: 'Attention! 👋',
-  //         text2: 'Fields can not be empty !',
-  //         position: 'bottom',
-  //         topOffset: 60,
-  //         bottomOffset: 80,
-  //       });
-  //       return false
-  //     }
-  // }
+        if (responseUserInfo) {
+          //Error
+          if (responseUserInfo.status >= 400) {
+            responseUserInfo.text().then((text) => Toast.showError(text));
+            return;
+          }
 
-  // useLayoutEffect(() => {
-  //   navigation.setOptions({
-  //     title: 'Delivery Address',
-  //   })
-  // });
+          if (responseUserInfo.status === 200) {
+            Toast.show("Information updated!")
+            navigation.popToTop();
+          }
+        }
+      } else {
+        const responseRegister = await postData("/auth/register/", credentials);
+        if (responseRegister) {
+          //Error
+          if (responseRegister.status >= 400) {
+            responseRegister.text().then((text) => Toast.showError(text));
+            return;
+          }
+
+          if (responseRegister.status === 200) {
+            const responseUserInfo = await updateData("/auth/user-info/",userInfo);
+
+            if (responseUserInfo) {
+              //Error
+              if (responseUserInfo.status >= 400) {
+                responseUserInfo.text().then((text) => Toast.showError(text));
+                return;
+              }
+
+              if (responseUserInfo.status === 200) {
+                Toast.show("User created successfully!")
+                navigation.popToTop();
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const validate = () => {
+    if (address != "" && state != "" && country != "" && zip != "") {
+      return true;
+    } else {
+      Toast.showError("Fields can not be empty !");
+      return false;
+    }
+  };
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: "Delivery Address",
+    });
+  });
 
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.mainContainer}>
-        <TouchableWithoutFeedback onPress={() => {Keyboard.dismiss()}}>
-            <View style={{ width: "100%" }}>
+        <TouchableWithoutFeedback
+          onPress={() => {
+            Keyboard.dismiss();
+          }}
+        >
+          <View style={{ width: "100%" }}>
             <View style={styles.headerContainer}>
-                <View style={styles.headerTitleContainer}>
+              <View style={styles.headerTitleContainer}>
                 <Text style={styles.headerTitle}>Delivery Address</Text>
-                </View>
+              </View>
             </View>
-            </View>
+          </View>
         </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback onPress={() => {Keyboard.dismiss()}}>
-            <View>
-            <Input icon="ios-location-sharp" placeholder="Address" keyboardType="default" textContentType="fullStreetAddress" onChangeText={(address) => setAddress(address)}/>
-            <Input icon="map" placeholder="Province" keyboardType="default" textContentType="addressState" onChangeText={(state) => setState(state)}/>
-            <Input icon="map" placeholder="Country" keyboardType="default" textContentType="countryName" onChangeText={(country) => setCountry(country)}/>
-            <Input icon="ios-location-sharp" placeholder="Postal Code" keyboardType="default" textContentType="postalCode" onChangeText={(zip) => setZip(zip)}/>
-            </View>
+        <TouchableWithoutFeedback
+          onPress={() => {
+            Keyboard.dismiss();
+          }}
+        >
+          <View>
+            <Input
+              icon="ios-location-sharp"
+              placeholder="Address"
+              keyboardType="default"
+              textContentType="fullStreetAddress"
+              onChangeText={(address) => setAddress(address)}
+            />
+            <Input
+              icon="map"
+              placeholder="City"
+              keyboardType="default"
+              textContentType="addressCity"
+              onChangeText={(city) => setCity(city)}
+            />
+            <Input
+              icon="map"
+              placeholder="Province"
+              keyboardType="default"
+              textContentType="addressState"
+              onChangeText={(state) => setState(state)}
+            />
+            <Input
+              icon="map"
+              placeholder="Country"
+              keyboardType="default"
+              textContentType="countryName"
+              onChangeText={(country) => setCountry(country)}
+            />
+            <Input
+              icon="ios-location-sharp"
+              placeholder="Postal Code"
+              keyboardType="default"
+              textContentType="postalCode"
+              onChangeText={(zip) => setZip(zip)}
+            />
+          </View>
         </TouchableWithoutFeedback>
-        
+
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} 
+          <TouchableOpacity
+            style={styles.button}
             onPress={() => {
-              if(validate()){
-                saveData()
-              } 
-            }}> 
+              if (validate()) {
+                saveData();
+              }
+            }}
+          >
             <Text style={styles.text}>Create Account</Text>
           </TouchableOpacity>
         </View>
@@ -131,7 +181,7 @@ export default ({ route, navigation }) => {
       </SafeAreaView>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {

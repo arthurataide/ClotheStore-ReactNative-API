@@ -9,13 +9,12 @@ import {
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import GetSingleItem from "../../backend/GetSingleItem";
+import { getData, postData } from "../../backend/FetchData";
 import Util from "../../helpers/Util";
 import theme from "../theme";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import CustomModal from "../../components/CustomModal";
-// import firebase from "firebase";
-import Toast from "react-native-toast-message";
+import * as Toast from "../../components/Toast";
 import Storage from "../../backend/LocalStorage";
 
 const SHIPPING_FEE = 9.99;
@@ -24,9 +23,6 @@ const TAX_RATE = 0.13;
 export default ({ route, navigation }) => {
   let userId = route.params.userId;
   let cartData = route.params.cartData;
-  console.log("CartData")
-  console.log(cartData)
-  let { item: userInfoItem } = GetSingleItem("userInfo/" + userId);
   let [userInfo, setUserInfo] = useState({});
   let [cardName, setCardName] = useState("");
   let [cardNumber, setCardNumber] = useState("");
@@ -41,6 +37,7 @@ export default ({ route, navigation }) => {
   let [state, setState] = useState("");
   let [zip, setZip] = useState("");
   let [country, setCountry] = useState("");
+  let [city, setCity] = useState("");
 
   const calculateTotals = () => {
     if (cartData.length > 0) {
@@ -71,6 +68,7 @@ export default ({ route, navigation }) => {
       address != "" &&
       country != "" &&
       state != "" &&
+      city != "" &&
       zip != ""
     )
       setUserInfo({
@@ -78,6 +76,7 @@ export default ({ route, navigation }) => {
         address: address,
         country: country,
         state: state,
+        city: city,
         zip: zip,
       });
     setVisibility(false);
@@ -89,28 +88,30 @@ export default ({ route, navigation }) => {
   }, [cartData]);
 
   useEffect(() => {
-    if (userInfoItem != undefined) {
-      if (typeof userInfoItem.val == "function") {
+
+    getData('/auth/user-info/' + userId)
+    .then(data =>{
         setUserInfo({
-          fullName:
-            userInfoItem.val().firstName + " " + userInfoItem.val().lastName,
-          address: userInfoItem.val().address,
-          country: userInfoItem.val().country,
-          state: userInfoItem.val().state,
-          zip: userInfoItem.val().zip,
-          email: userInfoItem.val().email,
-        });
+            fullName: data.firstName + " " + data.lastName,
+            address: data.address,
+            country: data.country,
+            city: data.city,
+            state: data.state,
+            zip: data.zip,
+            email: data.email,
+          });
 
         setFullName(
-          userInfoItem.val().firstName + " " + userInfoItem.val().lastName
+            data.firstName + " " + data.lastName
         );
-        setAddress(userInfoItem.val().address);
-        setState(userInfoItem.val().state);
-        setZip(userInfoItem.val().zip);
-        setCountry(userInfoItem.val().country);
-      }
-    }
-  }, [userInfoItem]);
+
+        setAddress(data.address);
+        setState(data.state);
+        setZip(data.zip);
+        setCountry(data.country);
+        setCity(data.city);
+    })
+  }, []);
 
   const placeOrder = async () => {
     if (checkInputs()) {
@@ -139,6 +140,7 @@ export default ({ route, navigation }) => {
           fullName: fullName,
           email: userInfo.email,
           address: userInfo.address,
+          city: userInfo.city,
           state: userInfo.state,
           country: userInfo.country,
           zip: userInfo.zip,
@@ -158,23 +160,27 @@ export default ({ route, navigation }) => {
           items: items,
         };
 
-        let newOrderKey = firebase.database().ref().child("order").push().key;
-
         try {
-          //Create order on Firebase
-          await firebase.database().ref(`order/${newOrderKey}`).set(order);
-          //Clear the cartt
-          await Storage.clearMapForKey("cart");
-          //Show toast message
-          Toast.show({
-            text1: "Hello there! 👋",
-            text2: `The order #${orderId} has been placed.`,
-          });
+          
+          //Create order
+          const response = await postData("/orders/", order)
+          
+          if (response){
+            const text = await response.text
+            if (response.status === 400){
+              Toast.showError(text)
+              return;
+            }
 
-          //Replace screen
-          //navigation.replace('home');
-          //TODO: There is a bug here, CART is not being cleared
-          navigation.goBack();
+            //Clear the cartt
+            await Storage.clearMapForKey("cart");
+            
+            //Show toast message
+            Toast.show(`The order #${orderId} has been placed.`);
+            navigation.goBack();
+            
+          }
+
         } catch (e) {
           console.error(e);
         }
@@ -209,14 +215,7 @@ export default ({ route, navigation }) => {
   const showAlert = (inputName) => {
     let message = `${inputName} is required!`;
 
-    Toast.show({
-      type: "error",
-      text1: "Attention! 👋",
-      text2: message,
-      position: "bottom",
-      topOffset: 60,
-      bottomOffset: 80,
-    });
+    Toast.showError(message);
   };
 
   const getHeader = () => {
@@ -234,6 +233,7 @@ export default ({ route, navigation }) => {
             <View style={{ paddingHorizontal: 15, width: "85%" }}>
               <Text>{userInfo.fullName}</Text>
               <Text>{userInfo.address}</Text>
+              <Text>{userInfo.city}</Text>
               <Text>
                 {userInfo.state} {userInfo.zip}
               </Text>
@@ -314,6 +314,12 @@ export default ({ route, navigation }) => {
             placeholder={"Address"}
             onChangeText={(text) => setAddress(text)}
             value={address}
+          />
+          <TextInput
+            style={[styles.input, { fontSize: 20 }]}
+            placeholder={"City"}
+            onChangeText={(text) => setCity(text)}
+            value={city}
           />
           <TextInput
             style={[styles.input, { fontSize: 20 }]}
@@ -422,7 +428,7 @@ export default ({ route, navigation }) => {
                 <Text>
                   {item.size} {item.quantity} Items
                 </Text>
-                <Text>{item.id}</Text>
+                <Text>{item.code}</Text>
                 <Text style={styles.priceText}>{`C${Util.formatter.format(
                   item.price
                 )}`}</Text>
@@ -603,6 +609,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     width: "100%",
     alignSelf: "flex-end",
+    color: '#A9A9A9'
   },
   button: {
     height: 47,

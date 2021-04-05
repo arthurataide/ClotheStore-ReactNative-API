@@ -2,7 +2,7 @@ import React, { useState, useLayoutEffect } from "react";
 import {StyleSheet, View, Text, Dimensions, TouchableOpacity, SafeAreaView, Keyboard, TouchableWithoutFeedback} from "react-native";
 import Input from "../../components/Input";
 import theme from "../theme";
-import Toast from 'react-native-toast-message';
+import * as Toast from '../../components/Toast';
 
 const { width, height } = Dimensions.get("screen");
 
@@ -36,36 +36,15 @@ export default ({ navigation }) => {
         if (password === confirmPassword){
           return true;
         } else {
-          Toast.show({
-            type: 'error',
-            text1: 'Attention! 👋',
-            text2: 'Passwords must match !',
-            position: 'bottom',
-            topOffset: 60,
-            bottomOffset: 80,
-          });
+          Toast.showError('Passwords must match !')
           return false;
         }
       } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Attention! 👋',
-          text2: 'Passwords must have at least 6 letters!',
-          position: 'bottom',
-          topOffset: 60,
-          bottomOffset: 80,
-        });
+        Toast.showError('Passwords must have at least 6 letters!')
       }
     } else {
-      Toast.show({
-        type: 'error',
-        text1: 'Attention! 👋',
-        text2: 'Fields can not be empty !',
-        position: 'bottom',
-        topOffset: 60,
-        bottomOffset: 80,
-      });
-      return false;s
+      Toast.showError('Fields can not be empty !')
+      return false;
     }
   }
 
@@ -85,7 +64,7 @@ export default ({ navigation }) => {
           <View>
             <Input icon="md-person" placeholder="First Name" keyboardType="default" textContentType="name" value={fName} onChangeText={fname => setFname(fname)}/>
             <Input icon="md-person" placeholder="Last Name" keyboardType="default" textContentType="familyName" value={lName} onChangeText={lname => setLname(lname)}/>
-            <Input icon="md-mail" placeholder="Email" keyboardType="email-address" textContentType="emailAddress" value={email} onChangeText={email => setEmail(email)}/>
+            <Input icon="md-mail" placeholder="Email" keyboardType="email-address" textContentType="emailAddress" value={email} onChangeText={email => setEmail(email)} />
             <Input icon="key" placeholder="Password" secureEntry={true} textContentType="newPassword" value={password} onChangeText={pass => setPassword(pass)}/>
             <Input icon="key" placeholder="Confirm Password" secureEntry={true} textContentType="newPassword" value={confirmPassword} onChangeText={cpass => setConfirmPassword(cpass)}/>
           </View>

@@ -1,33 +1,48 @@
-import { useState, useEffect } from "react";
-import FirebaseConfig from "./FirebaseConfig";
+import Config from "./ConfigAPI";
 
-export default (path) => {
-  let [data, setData] = useState([]);
-  let [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getDataFromFirebase();
-  }, []);
-
-  const getDataFromFirebase = () => {
-    let tmpData = [];
-    //Init Firebase
-    const firebase = FirebaseConfig();
-    //Database
-    const productRef = firebase.database().ref(path);
-
-    //Get data from Firebase
-    productRef.once("value", function (snapshot) {
-      snapshot.forEach(function (childSnapshot) {
-
-        tmpData.push(childSnapshot.val());
-      });
-
-      //Update states
-      setLoading(false);
-      setData(tmpData);
+export const getData = async (path) => {
+  try {
+    let response = await fetch(Config.BASE_URL + path, {
+      method: "GET",
+      headers: Config.HEADERS,
     });
-  };
-  console.log('getting data from firebase')
-  return { loading, data };
+
+    if (response) {
+      return await response.json();
+    }
+  } catch (e) {}
+};
+
+export const postData = async (path, data) => {
+  try {
+    let response = await fetch(Config.BASE_URL + path, {
+      method: "POST",
+      headers: Config.HEADERS,
+      body: JSON.stringify(data),
+    });
+    return response;
+  } catch (e) {}
+};
+
+export const updateData = async (path, data) => {
+  try {
+    let response = await fetch(Config.BASE_URL + path, {
+      method: "PUT",
+      headers: Config.HEADERS,
+      body: JSON.stringify(data),
+    });
+
+    return response;
+  } catch (e) {}
+};
+
+export const deleteData = async (path) => {
+  try {
+    let response = await fetch(Config.BASE_URL + path, {
+      method: "DELETE",
+      headers: Config.HEADERS,
+    });
+
+    return response;
+  } catch (e) {}
 };

@@ -9,17 +9,16 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import theme from "../theme";
-//import FirebaseConfig from "../../backend/FirebaseConfig";
-import Toast from 'react-native-toast-message';
-//import firebase from "firebase";
+import * as Toast from '../../components/Toast';
+import { getData, updateData } from "../../backend/FetchData";
+import { getAuthInfo } from "../../backend/AuthStorage";
 
 TextInput.defaultProps.selectionColor = theme.COLORS.PRIMARY;
 
 export default ({ navigation }) => {
   let [userAuth, setUserAuth] = useState();
-  let database = FirebaseConfig();
+  let [userInfo, setUserInfo] = useState({});
 
   let [fName, setFname] = useState("");
   let [lName, setLname] = useState("");
@@ -27,10 +26,11 @@ export default ({ navigation }) => {
   let [profilePic, setProfile] = useState();
 
   const checkAuth = () => {
-    firebase.auth().onAuthStateChanged((user) => {
+    
+    getAuthInfo().then((user) => {
       if (user) {
-        setUserAuth(user.uid);
-        fetchDetails(user.uid);
+        setUserAuth(user._id);
+        fetchDetails(user._id);
       } else {
         navigation.navigate("home");
       }
@@ -38,35 +38,23 @@ export default ({ navigation }) => {
   };
 
   const save = (id) => {
-    //console.log(userAuth);
-    //console.log(fName);
-    //console.log(lName);
-    database
-      .database()
-      .ref("/userInfo/" + id)
-      .update(
-        {
-          firstName: fName,
-          lastName: lName,
-        },
-        (error) => {
-          if (error) {
-            console.log(error);
-            // The write failed...
-          } else {
-            console.log("success");
-            // Data saved successfully!
-            Toast.show({
-              type: 'success',
-              text1: 'Done! 😍',
-              text2: 'Name updated !! 😍',
-              position: 'top',
-              topOffset: 80,
-              bottomOffset: 80,
-          });
-          }
+
+    const newUserInfo = {
+        ...userInfo,
+        firstName: fName,
+        lastName: lName,
+    }
+
+    updateData("/auth/user-info/", newUserInfo)
+    .then(response =>{
+      if(response){
+        console.log("response.status")
+        console.log(response.status)
+        if (response.status >= 200 && response.status <= 300){
+          Toast.show('Name updated !!');
         }
-      );
+      }
+    })
   };
 
   const profilePicture = () => {
@@ -87,17 +75,18 @@ export default ({ navigation }) => {
 
   const fetchDetails = (id) => {
     //console.log("fetchDetails " + id);
-    database
-      .database()
-      .ref("/userInfo/" + id)
-      .once("value", function (snapshot) {
-        if (snapshot.val() != null) {
-          setFname(snapshot.val().firstName);
-          setLname(snapshot.val().lastName);
-          setEmail(snapshot.val().email);
-          setProfile(snapshot.val().profilePicture);
-        }
-      });
+    getData("/auth/user-info/" + id)
+    .then(data => {
+      console.log(data)
+      if (data){
+        setUserInfo(data)
+
+        setFname(data.firstName);
+        setLname(data.lastName);
+        setEmail(data.email);
+        setProfile(data.url);
+      }
+    })
   };
 
   useLayoutEffect(() => {

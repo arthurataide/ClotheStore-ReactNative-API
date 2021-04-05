@@ -8,17 +8,16 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  Modal,
-  Button,
 } from "react-native";
-import fetchData from "../../backend/FetchData";
+import { getData } from "../../backend/FetchData";
+import { getAuthInfo } from "../../backend/AuthStorage";
 import { Ionicons } from "@expo/vector-icons";
 import Util from "../../helpers/Util";
 import theme from "../theme";
 import Storage from "../../backend/LocalStorage";
 import { NavigationEvents } from "react-navigation";
 import TabOptions from "../../components/TabOptions";
-import Toast from "react-native-toast-message";
+import * as Toast from "../../components/Toast";
 // import firebase from "firebase";
 import CustomModal from "../../components/CustomModal";
 
@@ -27,7 +26,8 @@ const checkItemExists = (data, id) => {
 };
 
 export default ({ navigation }) => {
-  let { loading, data: products } = fetchData("product/");
+  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState([]);
   let [favoritesData, setFavoritesData] = useState([]);
   let [modalVisibility, setModalVisibility] = useState(false);
   let [selectedItem, setSelectedItem] = useState({});
@@ -42,6 +42,18 @@ export default ({ navigation }) => {
     { key: 4, name: "XL", checked: false, onPress: () => {}, disable: true },
     { key: 5, name: "2XL", checked: false, onPress: () => {}, disable: true },
   ]);
+
+  loadProducts = () => {
+    setLoading(true);
+
+    getData('/products/').then((data) => {
+      if (data) {
+        setProducts(data);
+        console.log(data)
+        setLoading(false);
+      }
+    });
+  }
 
   //Check option onPreess event
   const checkOption = (key) => {
@@ -69,6 +81,8 @@ export default ({ navigation }) => {
     });
 
     setTabOptions(newTabOptions);
+
+    loadProducts()
   }, []);
   /* END SIZE CONFIGURATION */
 
@@ -86,7 +100,7 @@ export default ({ navigation }) => {
         arrayFavorites = favorites;
 
         setFavoritesData(
-          products.filter((x) => checkItemExists(arrayFavorites, x.id))
+          products.filter((x) => checkItemExists(arrayFavorites, x._id))
         );
       });
     }
@@ -95,9 +109,9 @@ export default ({ navigation }) => {
   const removeItem = (item) => {
     Storage.remove({
       key: "favorite",
-      id: item.id,
+      id: item._id,
     }).then(() => {
-      console.log(`Item ${item.id} removed from favorites`);
+      console.log(`Item ${item._id} removed from favorites`);
       showFavorites();
     });
   };
@@ -114,11 +128,11 @@ export default ({ navigation }) => {
     let selectedSize = tabOptions.filter((x) => x.checked)[0].name;
     
     console.log("- NEW CART ITEM -");
-    console.log(selectedItem.id + "-" + selectedSize);
+    console.log(selectedItem._id + "-" + selectedSize);
 
     let currentCartData = await Storage.getAllDataForKey("cart");
     let currentCartItem = currentCartData.filter(
-      (x) => x.item == selectedItem.id && x.size == selectedSize
+      (x) => x.item == selectedItem._id && x.size == selectedSize
     )[0];
 
     console.log("- CURRENT CART ITEM -");
@@ -131,22 +145,19 @@ export default ({ navigation }) => {
     }
 
     console.log("- NEW CART ITEM -");
-    console.log(selectedItem.id + "-" + selectedSize + "-" + newQty);
+    console.log(selectedItem._id + "-" + selectedSize + "-" + newQty);
 
     if (selectedSize) {
       Storage.save({
         key: "cart",
-        id: selectedItem.id + "-" + selectedSize,
+        id: selectedItem._id + "-" + selectedSize,
         data: {
-          item: selectedItem.id,
+          item: selectedItem._id,
           size: selectedSize,
           quantity: newQty, //Default quantity
         },
       }).then(() => {
-        Toast.show({
-          text1: "Hello there! 👋",
-          text2: "This item was added into the Cart!",
-        });
+        Toast.show("This item was added into the Cart!");
       });
     }
 
@@ -185,11 +196,14 @@ export default ({ navigation }) => {
 
   /** HEADER */
   React.useLayoutEffect(() => {
-    checkAuth();
     navigation.setOptions({
       title: "ClotheStore",
       headerRight: () => (
-        <TouchableOpacity onPress={() => navigation.navigate(userRoute)}>
+        <TouchableOpacity onPress={() => {
+          checkAuth().then(route =>{
+            navigation.navigate(route)
+          })
+        }}>
           <Ionicons
             name={"person"}
             size={25}
@@ -202,14 +216,13 @@ export default ({ navigation }) => {
   }, [navigation]);
   /** END HEADER */
 
-  const checkAuth = () => {
-    firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
-        userRoute = "account";
-      } else {
-        userRoute = "signin";
-      }
-    });
+  const checkAuth = async () => {
+    const user = await getAuthInfo()
+    if (user){
+      return 'account'
+    }else{
+      return 'signin'
+    }
   };
 
   const renderCard = (item) => {
@@ -301,7 +314,7 @@ export default ({ navigation }) => {
             showsVerticalScrollIndicator={false}
             data={favoritesData}
             renderItem={({ item }) => renderCard(item)}
-            keyExtractor={(x) => `${x.id}`}
+            keyExtractor={(x) => `${x._id}`}
           />
         </>
       )}

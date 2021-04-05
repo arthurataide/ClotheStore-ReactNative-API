@@ -10,19 +10,20 @@ import {
 } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import theme from "../theme";
-import fetchData from "../../backend/FetchData";
+import { getData } from "../../backend/FetchData";
+import { getAuthInfo } from "../../backend/AuthStorage";
 import { NavigationEvents } from "react-navigation";
 import Storage from "../../backend/LocalStorage";
 import Util from "../../helpers/Util";
 import CustomModal from "../../components/CustomModal";
 import TabOptions from "../../components/TabOptions";
-// import firebase from "firebase";
 
 const SHIPPING_FEE = 9.99;
 const TAX_RATE = 0.13;
 
 export default ({ route, navigation }) => {
-  let { loading, data: products } = fetchData("product/");
+  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState([]);
   let [cartData, setCartData] = useState([]);
   let [taxAmount, setTaxAmount] = useState(0);
   let [totalAmount, setTotalAmount] = useState(0);
@@ -30,8 +31,17 @@ export default ({ route, navigation }) => {
   let [qtyVisibility, setQtyVisibility] = useState(false);
   let [sizelVisibility, setSizeVisibility] = useState(false);
   let [selectedItem, setSelectedItem] = useState({});
-  let userRoute;
-  let [firebaseUser, setFirebaseUser] = useState({});
+
+  loadProducts = () => {
+    setLoading(true);
+
+    getData('/products/').then((data) => {
+      if (data) {
+        setProducts(data);
+        setLoading(false);
+      }
+    });
+  }
 
   //Options - size
   const [tabSizeOptions, setTabSizeOptions] = useState([
@@ -81,14 +91,15 @@ export default ({ route, navigation }) => {
     //Quantities
     let newTabOptions2 = [];
     tabQtyOptions.forEach((x) => {
-      //console.log("tabQtyOptions ");
-      //console.log(x);
-      //onPress function
       x.onPress = checkQtyOption;
       newTabOptions2.push(x);
     });
 
     setTabQtyOptions(newTabOptions2);
+
+    loadProducts();
+
+    //Storage.clearMapForKey('cart')
   }, []);
 
   useEffect(() => {
@@ -102,11 +113,14 @@ export default ({ route, navigation }) => {
   }, [products]);
 
   React.useLayoutEffect(() => {
-    checkAuth();
     navigation.setOptions({
       title: "ClotheStore",
       headerRight: () => (
-        <TouchableOpacity onPress={() => navigation.navigate(userRoute)}>
+        <TouchableOpacity onPress={() => {
+          checkAuth().then(({route}) =>{
+            navigation.navigate(route)
+          })
+        }}>
           <Ionicons
             name={"person"}
             size={25}
@@ -118,15 +132,13 @@ export default ({ route, navigation }) => {
     });
   }, [navigation]);
 
-  const checkAuth = () => {
-    firebase.auth().onAuthStateChanged((user) => {
-      setFirebaseUser(user); //cloning object
-      if (user) {
-        userRoute = "account";
-      } else {
-        userRoute = "signin";
-      }
-    });
+  const checkAuth = async () => {
+    const user = await getAuthInfo()
+    if (user){
+      return { route: 'account', user }
+    }else{
+      return { route: 'signin', user }
+    }
   };
 
   //Load Cart
@@ -150,12 +162,15 @@ export default ({ route, navigation }) => {
       Storage.getAllDataForKey("cart").then((cartList) => {
         
         cartList.forEach((x) => {
-          let product = products.filter((p) => p.id == x.item)[0];
+          let product = products.filter((p) => p._id == x.item)[0];
+          console.log("cartList")
+          console.log(cartList)
           cartProducts.push({
             key: x.item + "-" + x.size,
             quantity: x.quantity,
             size: x.size,
-            id: product.id,
+            id: product._id,
+            code: product.code,
             name: product.name,
             price: product.price,
             pictures: product.pictures,
@@ -163,13 +178,7 @@ export default ({ route, navigation }) => {
             sizes: product.size,
           });
         });
-        //console.log("- cartProducts -");
-        //console.log(cartProducts);
-
         setCartData(cartProducts);
-
-        //console.log("-Cart-");
-        //console.log(cartData);
       });
     }else{
       setCartData([]);
@@ -362,15 +371,16 @@ export default ({ route, navigation }) => {
     }
   };
 
-  const goToCheckout = () => {
+  const goToCheckout = async () => {
+    const { user } = await checkAuth()
+
+    console.log("currentUser")
+    console.log(user)
     if (cartData.length > 0) {
-      if (firebaseUser != undefined) {
-        //console.log("firebaseUser");
-        //console.log(firebaseUser.uid);
-        
+      if (user != undefined) {        
         navigation.navigate("checkout", {
           cartData: cartData,
-          userId: firebaseUser.uid,
+          userId: user._id,
         });
       } else {
         navigation.navigate("signin", {
