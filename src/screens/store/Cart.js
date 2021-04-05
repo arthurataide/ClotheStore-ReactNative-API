@@ -31,7 +31,6 @@ export default ({ route, navigation }) => {
   let [qtyVisibility, setQtyVisibility] = useState(false);
   let [sizelVisibility, setSizeVisibility] = useState(false);
   let [selectedItem, setSelectedItem] = useState({});
-  let [currentUser, setCurrentUser] = useState({});
 
   loadProducts = () => {
     setLoading(true);
@@ -99,10 +98,6 @@ export default ({ route, navigation }) => {
     setTabQtyOptions(newTabOptions2);
 
     loadProducts();
-
-    checkAuth().then(({user}) =>{
-      setCurrentUser(user)
-    })
 
     //Storage.clearMapForKey('cart')
   }, []);
@@ -376,14 +371,16 @@ export default ({ route, navigation }) => {
     }
   };
 
-  const goToCheckout = () => {
+  const goToCheckout = async () => {
+    const { user } = await checkAuth()
+
     console.log("currentUser")
-    console.log(currentUser)
+    console.log(user)
     if (cartData.length > 0) {
-      if (currentUser != undefined) {        
+      if (user != undefined) {        
         navigation.navigate("checkout", {
           cartData: cartData,
-          userId: currentUser._id,
+          userId: user._id,
         });
       } else {
         navigation.navigate("signin", {
