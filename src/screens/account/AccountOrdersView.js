@@ -3,13 +3,9 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   FlatList,
   Dimensions,
   Image,
-  ActivityIndicator,
-  ScrollView,
-  SafeAreaView,
 } from "react-native";
 import {
   FontAwesome5,
@@ -17,24 +13,15 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import theme from "../theme";
-// import FirebaseConfig from "../../backend/FirebaseConfig";
-// import firebase from "firebase";
 import Util from "../../helpers/Util";
 import Moment from "moment";
 import { getData } from "../../backend/FetchData";
 
 export default ({ route, navigation }) => {
   let { order } = route.params;
-  //console.log(order);
   let [loading, setLoading] = useState();
   let [items, setOrderData] = useState("");
   let [orderItems, setOrderItems] = useState([]);
-  //let database = FirebaseConfig();
-  //Moment.locale("en");
-
-//   const checkAuth = () => {
-//       navigation.navigate("home");
-//   };
 
   useLayoutEffect(() => {
       //checkAuth();
@@ -54,21 +41,12 @@ export default ({ route, navigation }) => {
 
         order.items.forEach(i =>{
             const product = products.filter(p => p._id === i.product_id)[0]
-            console.log(product.pictures.length)
             if (product){
                 const newItem =  {...i, 
                         url: product.pictures.length > 0 
                         ?  product.pictures[0].url 
                         : "https://ui-avatars.com/api/?name=Clothe+Store&size=512"}
                 newItems.push(newItem)
-                // console.log(newItems)
-                
-                //{ ...req.body, user_id: _id }
-
-                    // newItems.push( {...i, 
-                    //     url: product.pictures[0].length > 0 
-                    //     ?  product.pictures[0].url 
-                    //     : "https://ui-avatars.com/api/?name=Clothe+Store&size=512"} )
             }
         })
         
@@ -81,33 +59,6 @@ export default ({ route, navigation }) => {
 
     
   }
-
-//   const fetchItemImage = (itemId) => {
-//     let url = "https://ui-avatars.com/api/?name=Clothe+Store&size=512";
-//     getData("/products/" + itemId).then((product) => {
-//       if (product.pictures.length > 0) {
-//         url = product.pictures[0].url;
-//       }
-//     });
-
-//     return ( <Image style={styles.image} source={{ uri: url }} /> );
-
-//     // //console.log(itemId)
-//     // const orderRef = database.database().ref("product/");
-
-//     // orderRef
-//     // .orderByChild("id")
-//     // .equalTo(itemId)
-//     // .on("value", function (snapshot) {
-//     //     snapshot.forEach(function (childSnapshot) {
-//     //         //console.log(childSnapshot.val().pictures[0].url)
-//     //         url = childSnapshot.val().pictures[0].url
-//     //     })
-//     // })
-//     // return (
-//     //     <Image style={styles.image} source={{ uri: url }} />
-//     // )
-//   };
 
   const renderCard = (item, status) => {
     var color = "";

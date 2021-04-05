@@ -9,8 +9,9 @@ import HomeScreenAdmin from '../screens/admin/Main';
 import CategoryScreen from '../screens/admin/Category/Category';
 import ProductsScreen from '../screens/admin/Products/Products';
 import CreateUpdateProductScreen from '../screens/admin/Products/CreateUpdate';
-import OrdersScreen from '../screens/admin/Orders';
-import CustomersScreen from '../screens/admin/Customers';
+import OrdersScreen from '../screens/admin/Orders/Orders';
+import UpdateOrderScreen from '../screens/admin/Orders/Update'
+import CustomersScreen from '../screens/admin/Customers/Customers';
 
 import theme from '../screens/theme';
 
@@ -26,36 +27,28 @@ const Stack = createStackNavigator();
 
 function HomeStack() {
   return (
-    <NavigationContainer theme={MyTheme} independent={true}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.COLORS.PRIMARY}></StatusBar>
-      <Stack.Navigator initialRouteName="Home" mode="modal">
+      <Stack.Navigator  initialRouteName="Home" mode="modal">
         <Stack.Screen 
         name="Home" 
         component={HomeScreenAdmin} 
         />
       </Stack.Navigator>
-    </NavigationContainer>
   )
 }
 
 function CategoryStack() {
   return (
-    <NavigationContainer theme={MyTheme} independent={true}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.COLORS.PRIMARY}></StatusBar>
       <Stack.Navigator initialRouteName="Category" mode="modal">
         <Stack.Screen 
         name="Category" 
         component={CategoryScreen}  
         />
       </Stack.Navigator>
-    </NavigationContainer>
   )
 }
 
 function ProductsStack() {
   return (
-    <NavigationContainer theme={MyTheme} independent={true}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.COLORS.PRIMARY}></StatusBar>
       <Stack.Navigator initialRouteName="Products" mode="modal">
         <Stack.Screen 
         name="Products" 
@@ -66,35 +59,33 @@ function ProductsStack() {
         component={CreateUpdateProductScreen} 
         />
       </Stack.Navigator>
-    </NavigationContainer>
   )
 }
 
 function OrdersStack() {
   return (
-    <NavigationContainer theme={MyTheme} independent={true}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.COLORS.PRIMARY}></StatusBar>
       <Stack.Navigator initialRouteName="Orders" mode="modal">
         <Stack.Screen 
         name="Orders" 
         component={OrdersScreen} 
         />
+        <Stack.Screen 
+        name="Update" 
+        component={UpdateOrderScreen} 
+        />
       </Stack.Navigator>
-    </NavigationContainer>
+
   )
 }
 
 function CustomersStack() {
   return (
-    <NavigationContainer theme={MyTheme} independent={true}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.COLORS.PRIMARY}></StatusBar>
-      <Stack.Navigator initialRouteName="Customers" mode="modal">
+      <Stack.Navigator  initialRouteName="Customers" mode="modal">
         <Stack.Screen 
         name="Customers" 
         component={CustomersScreen} 
         />
       </Stack.Navigator>
-    </NavigationContainer>
   )
 }
 
@@ -167,10 +158,10 @@ function CustomDrawerContent({ progress, state, color, navigation, ...props }) {
         onPress={() => navigation.navigate('Customers')}/>
         <View style={styles.separator}/>
         <View style={{flex: 1, flexDirection:'row', padding: 10}}>
-          <Text style={{color: 'rgba(255,255,255, 0.4)', fontWeight: "700", fontSize: 12}}>STATISTICS</Text>
+          <Text style={{color: 'rgba(255,255,255, 0.4)', fontWeight: "700", fontSize: 12}}>STATISTICS FOR SALES</Text>
         </View>
         <DrawerItem 
-        label= "Sales by category" 
+        label= "Category" 
         icon={({color, size}) => <FontAwesome5 name={"chart-area"} color= {color} size={size}/>}
         activeTintColor={theme.COLORS.WHITE}
         inactiveTintColor={'rgba(255,255,255, 0.8)'}
@@ -178,7 +169,7 @@ function CustomDrawerContent({ progress, state, color, navigation, ...props }) {
         activeBackgroundColor 
         onPress={() => navigation.navigate('Category')}/>
         <DrawerItem 
-        label= "Sales by product" 
+        label= "Product" 
         icon={({color, size}) => <FontAwesome5 name={"chart-area"} color= {color} size={size}/>}
         activeTintColor={theme.COLORS.WHITE}
         inactiveTintColor={'rgba(255,255,255, 0.8)'}
@@ -193,7 +184,7 @@ function CustomDrawerContent({ progress, state, color, navigation, ...props }) {
 function App() {
 
   return ( 
-    <NavigationContainer>
+    <NavigationContainer theme={MyTheme}>
       <StatusBar barStyle="light-content" backgroundColor={theme.COLORS.PRIMARY}></StatusBar>
       <Drawer.Navigator drawerContent={(props) => <CustomDrawerContent {...props} />}
       minSwipeDistance={20} 
@@ -208,6 +199,7 @@ function App() {
       }}
       >
         <Drawer.Screen 
+        
         name="Home" 
         component={HomeStack} 
         />

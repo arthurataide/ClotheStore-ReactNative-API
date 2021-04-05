@@ -1,5 +1,5 @@
 import React, {useState, useLayoutEffect, useEffect} from "react";
-import { ActivityIndicator, TextInput, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity } from "react-native";
+import { RefreshControl, TextInput, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity } from "react-native";
 import { SearchBar } from 'react-native-elements';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import Swipeout from 'react-native-swipeout';
@@ -13,6 +13,7 @@ export default ({navigation}) => {
 
     let [categories, setCategories] = useState([]);
     let [clearCategories, setClearCategories] = useState([]);
+    let [loading, setLoading] = useState(false);
     
     let [modalCreateVisibility, setModalCreateVisibility] = useState(false);
     let [modalEditVisibility, setModalEditVisibility] = useState(false);
@@ -36,6 +37,7 @@ export default ({navigation}) => {
     }, [navigation]);
 
     const fetchData = async () => {
+        setLoading(true)
         fetch(
             "https://clothestore-wearesouth01-gmailcom.vercel.app/api/categories",
             {
@@ -48,10 +50,16 @@ export default ({navigation}) => {
                 //console.log(data);
                 setCategories(data); 
                 setClearCategories(data);
+                setLoading(false)
               });
             }
         });
     }
+
+    const onRefresh = () => {
+        fetchData();
+      };
+
     const hideCreateModal = () => {
         setModalCreateVisibility(false);
     };
@@ -66,9 +74,13 @@ export default ({navigation}) => {
        }
     } 
 
+
+
     const updateCategory = () => {
-        console.log(cName)
-        hideEditModal()
+        if(cName != ''){
+            console.log(cName)
+            hideEditModal()
+        }
     } 
 
     const deleteCategory = (id) => {
@@ -92,9 +104,8 @@ export default ({navigation}) => {
     const renderCategory = (item) => {       
         return (
             <Swipeout autoClose={true} backgroundColor={'transparent'} buttonWidth= {70} right={[{text: 'Delete', backgroundColor: 'red',onPress:() =>  deleteCategory(item._id)}]}>    
-                <View style={styles.card}>
+                <View style={[styles.card, {borderLeftWidth: 8, borderLeftColor: item.active ? theme.COLORS.PRIMARY : theme.COLORS.ERROR}]}>
                     <TouchableOpacity style={[styles.cardContent,{width: "80%", flexDirection: 'row',alignItems: "center",}]} onPress={() => console.log("Change Status " + item.name)}>
-                        <View style={{marginRight:10, height: 10, width: 10, borderRadius: 10, backgroundColor: item.active ? theme.COLORS.PRIMARY : theme.COLORS.ERROR}}/>
                         <Text style={styles.cardText}>
                             {item.name}
                         </Text>
@@ -153,6 +164,12 @@ export default ({navigation}) => {
             }}
         />
        <FlatList
+            refreshControl={
+                <RefreshControl
+                refreshing={loading}
+                onRefresh={onRefresh}
+                />
+            }
             vertical
             showsVerticalScrollIndicator={false}
             data={categories}
@@ -180,7 +197,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginHorizontal: 5,
         marginVertical: 5,
-        borderColor: theme.COLORS.TITLE,
+        borderTopColor: theme.COLORS.TITLE,
+        borderRightColor: theme.COLORS.TITLE,
+        borderBottomColor: theme.COLORS.TITLE,
         borderWidth: 1,
         borderRadius: 5,
     },
