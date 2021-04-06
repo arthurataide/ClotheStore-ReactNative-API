@@ -213,10 +213,13 @@ export default ({route, navigation}) => {
             if (i != undefined && i.status === 200){
                 pictures.push({
                     name: i.data.id,
-                    name: i.data.url,
+                    url: i.data.url,
                 })
             }
         })
+
+        console.log("pictures")
+        console.log(pictures)
         const newProduct = {
             code: id,
             name: name,
@@ -286,11 +289,15 @@ export default ({route, navigation}) => {
             }
             const response = await postData('/storage/', tmpImage)
             if (response) {
-                if (console.status == 200){
-                    const json = await response.json()
+                if (response.status == 200){
+                    const data = await response.json()
+
+                    console.log("data")
+                    console.log(data)
+
                     return {
                       status: response.status,
-                      data: json,
+                      data,
                     }
                 }else{
                     const text = await response.text()
