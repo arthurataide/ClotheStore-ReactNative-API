@@ -1,31 +1,56 @@
-import React, {useCallback, useState, useLayoutEffect, useEffect, useRef} from "react";
+import React, {useCallback, useState, useLayoutEffect, useEffect, useRef, useMemo} from "react";
 import { Image, TextInput, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity } from "react-native";
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { TextInputMask } from 'react-native-masked-text'
 import Util from "../../../helpers/Util";
 import theme from "../../theme";
+import { getData, updateData } from "../../../backend/FetchData";
+import * as Toast from '../../../components/Toast'
 
 //Screen
 export default ({route, navigation}) => {
     
     const { order_id } = route.params;
-    //console.log(order_id)
-
     const [order, setOrder] = useState('');
-
     const [address, setAddress] = useState('');
     const [state, setState] = useState('');
     const [city, setCity] = useState('');
     const [zip, setZip] = useState('');
-
     const [items, setItems] = useState([])
-    const [itemsImg, setItemsImg] = useState([])
+    const [orderItems, setOrderItems] = useState([]);
 
-    //const [price, setPrice] = useState('');
+
+    const loadItems = async () =>{
+    
+        try {
+            let newItems = []
+            const products = await getData('/products/')
+    
+            items.forEach(i =>{
+                const product = products.filter(p => p._id === i.product_id)[0]
+                if (product){
+                    const newItem =  {...i, 
+                            url: product.pictures.length > 0 
+                            ?  product.pictures[0].url 
+                            : "https://ui-avatars.com/api/?name=Clothe+Store&size=512"}
+                    newItems.push(newItem)
+                }
+            })
+            
+            console.log(newItems)
+            return newItems
+        } catch (error) {
+            console.error(error)
+        }
+      }
 
     useEffect(() => {
         getOrder()
     }, [])
+
+    useEffect(() => {
+        loadItems().then(data => setOrderItems(data))
+    }, [items])
 
     useLayoutEffect(() => {
         //fillDetails()
@@ -52,57 +77,18 @@ export default ({route, navigation}) => {
               response.json().then((data) => {
                 
                 setOrder(data)
-                //setOrderId(data.orderId); 
                 setItems(data.items)
                 setAddress(data.address)
                 setCity(data.city)
                 setState(data.state)
                 setZip(data.zip)
-                //console.log(order);
-                // setClearOrders(data);
-                // setLoading(false)
-              });
-            }
-        });
-        //setItems(order.items)
-    }
-
-    const fetchProduct = async (id) => {
-        fetch(
-            "https://clothestore-wearesouth01-gmailcom.vercel.app/api/products/" + id,
-            {
-              method: "GET",
-              headers: { "Content-Type": "application/json" },
-            }
-        ).then((response) => {
-            if (response) {
-              response.json().then((data) => {
-                console.log(data.pictures[0])
-                //console.log(data.pictures[0].url);
-                //console.log(data.pictures[0].url )
-                //setItemImg(data.pictures[0].url)
               });
             }
         });
     }
 
+    const _getHeader = useMemo(() => (
 
-    const getImage = (itemId) => {
-        console.log(itemId)
-    
-        //let response = await Promise.fetchProduct(itemId)
-
-        //console.log(response)
-        //"https://ui-avatars.com/api/?name=Clothe+Store&size=512"
-        
-        //console.log(result);
-        //console.log(products)
-
-        return <Image style={styles.image} source={{ uri: "https://ui-avatars.com/api/?name=Clothe+Store&size=512" }} />
-    }
-
-    const getHeader = () => {
-        return (
             <>
                 <View style={styles.titleView}>
                     <Text style={styles.title}>Address Information</Text>
@@ -143,8 +129,8 @@ export default ({route, navigation}) => {
                     <Text style={styles.title}>Products</Text>
                 </View>
             </>
-        )
-    }
+        
+    ))
 
     const renderCard = (item, status) => {
         var color = ''
@@ -166,12 +152,12 @@ export default ({route, navigation}) => {
         }
         return (
             <View style={[styles.cardContainer, {borderRightColor: color}]}>
-                {getImage(item.product_id)}
+                <Image style={styles.image} source={{ uri: item.url }} />
                 <View style={styles.textContainer}>
                     {/* First line  */}
                     <Text style={{fontWeight: '700', marginTop: 10}}>{item.name}</Text>
                     <Text>{item.size}  {item.quantity} Items</Text> 
-                    <Text>{item.productId}</Text>
+                    <Text>{item.code}</Text>
                     <Text style={styles.priceText}>{`C${Util.formatter.format(item.price)}`}</Text>
                 </View>
             </View>
@@ -215,19 +201,38 @@ export default ({route, navigation}) => {
         )
     }
 
+    const updateOrder = async () =>{
+        if(address.trim() === '' ||  city.trim() === '' || state.trim() === '' || zip.trim() === ''){
+            Toast.showError(`Fields can not be empty`)
+            return
+        }
+
+        const newOrder = {...order, address, city, state, zip}
+        const response = updateData('/orders/' + order._id, newOrder)
+
+        console.log((await response).status)
+
+        if ((await response).status >= 200 && (await response).status <= 300){
+            Toast.show(`Order #${ order.orderId } was updated successfully!`)
+            navigation.goBack();
+        }else{
+            Toast.showError(`Order #${ order.orderId } could not be updated!`)
+        }
+    }
+
     return (
         <View style = { styles.container }>
             <FlatList
             vertical
             showsVerticalScrollIndicator={false}
-            data={items}
+            data={orderItems}
             renderItem={({ item }) => renderCard(item, order.status)}
             keyExtractor={(x) => x._id}
-            ListHeaderComponent={getHeader}
+            ListHeaderComponent={_getHeader}
             ListFooterComponent={getFooter}
             />     
                 
-            <TouchableOpacity activeOpacity={0.8} style={styles.saveButton}>
+            <TouchableOpacity activeOpacity={0.8} style={styles.saveButton} onPress={()=>updateOrder()} >
                 <Text style={{color: "white", fontSize: 20, alignItems: "center", alignContent: "center"}} >Save</Text>
             </TouchableOpacity>
         </View>

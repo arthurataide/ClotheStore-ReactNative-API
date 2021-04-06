@@ -34,6 +34,15 @@ export default ({route, navigation}) => {
         })
     }, [navigation]);
 
+    useEffect(() => {
+        console.log("useEffect Reload")
+        const reload = navigation.addListener('focus', () => {
+          onRefresh()
+          console.log("Focus")
+        });
+        return reload;
+      }, [navigation, orders]);
+
     const fetchData = async () => {
         setLoading(true)
         getData('/orders').then((data) => {
