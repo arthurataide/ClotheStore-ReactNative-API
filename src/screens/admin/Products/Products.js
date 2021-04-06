@@ -2,9 +2,9 @@ import React, {useState, useLayoutEffect, useEffect} from "react";
 import { RefreshControl, TextInput, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity } from "react-native";
 import { SearchBar } from 'react-native-elements';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
-import Swipeout from 'react-native-swipeout';
+import { getData, postData, updateData, deleteData  } from "../../../backend/FetchData";
 import Util from "../../../helpers/Util";
-
+import * as Toast from "../../../components/Toast";
 import theme from "../../theme";
 
 //Screen
@@ -18,9 +18,6 @@ export default ({navigation}) => {
     let [categories, setCategories] = useState([]);
 
     useLayoutEffect(() => {
-        //checkAuth();
-        // setProducts(data)
-        // setClearProducts(data)
         fetchData()
         navigation.setOptions({
           title: 'Products',
@@ -34,37 +31,45 @@ export default ({navigation}) => {
 
     const fetchData = async () => {
         setLoading(true)
-        fetch(
-            "https://clothestore-wearesouth01-gmailcom.vercel.app/api/products",
-            {
-              method: "GET",
-              headers: { "Content-Type": "application/json" },
-            }
-        ).then((response) => {
-            if (response) {
-              response.json().then((data) => {
-                //console.log(data);
+        getData('/products').then((data) => {
+            if (data) {
                 setProducts(data); 
                 setClearProducts(data);
-                setLoading(false)
-              });
             }
-        });
-        fetch(
-            "https://clothestore-wearesouth01-gmailcom.vercel.app/api/categories",
-            {
-              method: "GET",
-              headers: { "Content-Type": "application/json" },
-            }
-        ).then((response) => {
-            if (response) {
-              response.json().then((data) => {
-                //console.log(data);
+        })
+    
+        getData('/categories').then((data) => {
+            if (data) {
                 setCategories(data); 
                 setLoading(false)
-              });
             }
-        });
+        })
+    }
+
+    const updateStatus = async (id, active) => {
+        //console.log(active)
+        const tmp = {
+            active: active
+        }
+        try {
+             const response = await updateData('/products/' + id, tmp);
+
+             if (response) {
+                 //console.log("response ", response.status)
+                 //Error
+                 if (response.status >= 400) {
+                     response.text().then((text) => Toast.showError(text));
+                     return;
+                 }
+                 if (response.status === 204) {
+                     //console.log(cName)
+                     Toast.show("Status updated successfully!")
+                     fetchData()
+                 }
+               }
+        } catch (error) {
+             console.error(error);
+        }       
     }
 
     const onRefresh = () => {
@@ -97,7 +102,7 @@ export default ({navigation}) => {
             } 
             else if (searchCat(text).length > 0){
                 //console.log(searchCat(text)[0]._id)
-                console.log("-------------------")
+                //console.log("-------------------")
                 if(x.category_id.includes(searchCat(text)[0]._id)){
                     result = x.category_id.includes(searchCat(text)[0]._id);
                 }
@@ -117,10 +122,9 @@ export default ({navigation}) => {
     }
 
     const renderProduct = (item) => {       
-        return (
-            <Swipeout autoClose={true} backgroundColor={'transparent'} buttonWidth= {70} right={[{text: 'Delete', backgroundColor: 'red',onPress:() =>  console.log("delete")}]}>    
+        return (   
                 <View style={[styles.card, {borderLeftWidth: 8, borderLeftColor: item.active ? theme.COLORS.PRIMARY : theme.COLORS.ERROR}]}>
-                    <TouchableOpacity style={[styles.cardContent,{flexDirection:'column', width: "80%"}]} onPress={() => console.log("Change Status " + item.name)}>
+                    <TouchableOpacity style={[styles.cardContent,{flexDirection:'column', width: "80%"}]} onPress={() => navigation.navigate('CreateUpdate', {item: item})}>
                         <View style={{flexDirection: 'row', alignItems: 'center'}}>
                             <Text style={styles.cardText}>
                                 {item.name}
@@ -137,11 +141,10 @@ export default ({navigation}) => {
                             </Text>
                         </View>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.cardContent,{position: "absolute", right: 10}]} onPress={() => navigation.navigate('CreateUpdate', {item: item})}>
-                        <FontAwesome5 name={"edit"} size={15} color={theme.COLORS.PRIMARY}/>
+                    <TouchableOpacity style={[styles.cardContent,{position: "absolute", right: 10}]} onPress={() => updateStatus(item._id, !item.active)}>
+                        <FontAwesome5 name={"exchange-alt"} size={15} color={theme.COLORS.PRIMARY}/>
                     </TouchableOpacity>
                 </View>
-            </Swipeout>
         )
     }
     return (
@@ -159,6 +162,12 @@ export default ({navigation}) => {
                     searchByNameClassAndCat(text)
                 }}
             />
+            <View style={styles.info}>
+                <View style={{marginRight: 5 ,height: 15, width: 15, borderRadius: 15, backgroundColor: theme.COLORS.PRIMARY}}/>
+                <Text>Active</Text>
+                <View style={{marginRight: 5 ,marginLeft: 10, height: 15, width: 15, borderRadius: 15, backgroundColor: theme.COLORS.ERROR}}/>
+                <Text>Inactive</Text>
+            </View>
             <FlatList
                 refreshControl={
                     <RefreshControl
@@ -171,7 +180,6 @@ export default ({navigation}) => {
                 data={products}
                 renderItem={({ item }) => renderProduct(item)}
                 keyExtractor={(x) => `${x._id}`}
-                style={{marginTop: 5}}
             />
             <TouchableOpacity style={styles.create} onPress={() => navigation.navigate('CreateUpdate')}>
                 <FontAwesome5 name={"plus"} color= {"white"} size={25}/>
@@ -187,6 +195,12 @@ const styles = StyleSheet.create({
         alignContent:'center',
         backgroundColor: theme.COLORS.WHITE,
     },
+    info: {
+        padding: 10,
+        flexDirection: 'row',
+        justifyContent: "center",
+        alignItems: "center"
+    },  
     card: {
         flex: 1,
         flexDirection: 'row',

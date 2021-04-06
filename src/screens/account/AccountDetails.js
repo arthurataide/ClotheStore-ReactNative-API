@@ -58,19 +58,15 @@ export default ({ navigation }) => {
   };
 
   const profilePicture = () => {
-    if (profilePic != undefined) {
-      return <Image style={styles.img} source={{ uri: profilePic }}></Image>;
-    } else {
       return (
         <Image
           style={styles.img}
           source={{
             uri:
-              "https://ui-avatars.com/api/?size=256&background=5a2d82&color=fff&name=John+Doe",
+              "https://ui-avatars.com/api/?size=256&background=5a2d82&color=fff&name="+fName+lName,
           }}
         ></Image>
       );
-    }
   };
 
   const fetchDetails = (id) => {

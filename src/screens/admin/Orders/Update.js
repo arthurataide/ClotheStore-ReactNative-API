@@ -101,7 +101,6 @@ export default ({route, navigation}) => {
         return <Image style={styles.image} source={{ uri: "https://ui-avatars.com/api/?name=Clothe+Store&size=512" }} />
     }
 
-
     const getHeader = () => {
         return (
             <>
