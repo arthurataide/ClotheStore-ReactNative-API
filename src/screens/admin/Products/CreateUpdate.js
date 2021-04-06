@@ -100,7 +100,7 @@ export default ({route, navigation}) => {
 
     const fillDetails = () => {
         if(route.params){
-            console.log('Params exists')
+            //console.log('Params exists')
             let {item} = route.params
 
             setDataImages(item.pictures)
@@ -130,7 +130,7 @@ export default ({route, navigation}) => {
 
             tabOptions.forEach((x) => {
                 item.size.forEach((si) => {
-                    console.log("Option")
+                    //console.log("Option")
                     if(si == x.name){
                         console.log(si + ' equal to ' + x.name)
                         x.checked = true;
@@ -153,116 +153,163 @@ export default ({route, navigation}) => {
     }
 
     const createImageArray = (newItem) => {
-        console.log("Function")
+        //console.log("Function")
         const image = dataImages;
         image.push(newItem)
         //console.log(image)
         return image
     }
 
-    const uploadImage = async () => {
-        for (const image of dataImages){
-            //console.log(image.base64string)
-            if(image.base64string){
-                var tmpArray = readyDataImages
-                try {
-                    var tmpImage = {
-                        folder: "products",
-                        base64string: image.base64string,
-                    }
-                    //console.log(tmpImage)
-                    const response = await postData('/storage/', tmpImage)
+
+    // const uploadImage = async () => {
+    //     for (const image of dataImages){
+    //         //console.log(image.base64string)
+    //         if(image.base64string){
+    //             var tmpArray = readyDataImages
+    //             try {
+    //                 var tmpImage = {
+    //                     folder: "products",
+    //                     base64string: image.base64string,
+    //                 }
+    //                 //console.log(tmpImage)
+    //                 const response = await postData('/storage/', tmpImage)
                     
-                    if (response) {
-                        console.log(response.status)
-                        //console.log('here')
-                        //Error
-                        if (response.status >= 400) {
-                            response.text().then((text) => Toast.showError(text));
-                            return;
-                        }
-                        if (response.status === 200) {
-                            //console.log('here')
-                            response.json().then((data) => {
-                                //console.log(data)
-                                var tmp = {
-                                    name: data.id,
-                                    url: data.url
-                                }
-                                tmpArray.push(tmp)
-                                setReadyDataImages(tmpArray)
-                                //console.log(tmp)
-                                //console.log(tmpArray)
-                            })
-                            //console.log(response)
-                        }
-                    }
-                } catch (error) {
-                    console.error(error);
-                }  
-            }
-        }
-        
-    }
-    const postProduct = async () => {
-        console.log("Starting to upload the product")
-        console.log(readyDataImages)
-    //     const newProduct = {
-    //         code: id,
-    //         name: name,
-    //         description: description,
-    //         price: convertStringToNumber(price),
-    //         stock: parseInt(stock),
-    //         classification: classification,
-    //         category_id: selectedCategory,
-    //         size: sizesSelected,
-    //         pictures: readyDataImages,
-    //         active: true
+    //                 if (response) {
+    //                     console.log(response.status)
+    //                     //console.log('here')
+    //                     //Error
+    //                     if (response.status >= 400) {
+    //                         response.text().then((text) => Toast.showError(text));
+    //                         return;
+    //                     }
+    //                     if (response.status === 200) {
+    //                         //console.log('here')
+    //                         response.json().then((data) => {
+    //                             //console.log(data)
+    //                             var tmp = {
+    //                                 name: data.id,
+    //                                 url: data.url
+    //                             }
+    //                             tmpArray.push(tmp)
+    //                             setReadyDataImages(tmpArray)
+    //                             //console.log(tmp)
+    //                             //console.log(tmpArray)
+    //                         })
+    //                         //console.log(response)
+    //                     }
+    //                 }
+    //             } catch (error) {
+    //                 console.error(error);
+    //             }  
+    //         }
     //     }
-    //     try {
-    //         const response = await postData('/products/', newProduct);
-    //         if (response) {
-    //             //Error
-    //             if (response.status >= 400) {
-    //                 response.text().then((text) => Toast.showError(text));
-    //                 return;
-    //             }
-    //             if (response.status === 200) {
-    //                 Toast.show("Category created successfully!")
-    //                 setReadyDataImages([])
-    //                 setLoading(false)
-    //                 navigation.goBack()
-    //             }
-    //           }
-    //    } catch (error) {
-    //         console.error(error);
-    //    }
+        
+    // }
+    const postProduct = async (uploadedImages) => {
+        // console.log("Starting to upload the product")
+        // console.log(readyDataImages)
+        const pictures = []
+        uploadedImages.forEach(i => {
+            if (i != undefined && i.status === 200){
+                pictures.push({
+                    name: i.data.id,
+                    name: i.data.url,
+                })
+            }
+        })
+        const newProduct = {
+            code: id,
+            name: name,
+            description: description,
+            price: convertStringToNumber(price),
+            stock: parseInt(stock),
+            classification: classification,
+            category_id: selectedCategory,
+            size: sizesSelected,
+            pictures: pictures,
+            active: true
+        }
+        try {
+            const response = await postData('/products/', newProduct);
+            if (response) {
+                //Error
+                if (response.status >= 400) {
+                    response.text().then((text) => Toast.showError(text));
+                    return;
+                }
+                if (response.status === 200) {
+                    Toast.show("Category created successfully!")
+                    setReadyDataImages([])
+                    setLoading(false)
+                    navigation.goBack()
+                }
+              }
+       } catch (error) {
+            console.error(error);
+       }
     }
 
     const saveProduct = async () => {
         setLoading(true)
-        let selectedSizes = tabOptions.filter((x) => x.checked);
-        let tmpArray = []
-        selectedSizes.forEach((x) => {
-            tmpArray.push(x.name)
-        })
-        setSizesSelected(tmpArray);
+        console.log('HERE')
 
-        await uploadImage().then((x) => {
-            console.log(readyDataImages)
-        })
-        setLoading(false)
-        //console.log(response)
-        //postProduct()
-        //upload newImages
-        //console.log(dataImages.length)
+        // let selectedSizes = tabOptions.filter((x) => x.checked);
+        // let tmpArray = []
+        // selectedSizes.forEach((x) => {
+        //     tmpArray.push(x.name)
+        // })
+        // setSizesSelected(tmpArray);
+
+        // await uploadImage().then((x) => {
+        //     console.log(readyDataImages)
+        // })
+
+        try {
+            const promises = dataImages.map( image => uploadImage(image.base64string) )
+            const resultUploadImage = await Promise.all(promises)
+            
+            console.log(resultUploadImage)
+            await postProduct(resultUploadImage)
+        } catch (error) {
+            console.error(error)
+        }finally{
+            setLoading(false)
+        }
+
+    }
+
+    const uploadImage = async (base64String) =>{
+        try {
+            var tmpImage = {
+                folder: "products",
+                base64string: base64String,
+            }
+            const response = await postData('/storage/', tmpImage)
+            if (response) {
+                if (console.status == 200){
+                    const json = await response.json()
+                    return {
+                      status: response.status,
+                      data: json,
+                    }
+                }else{
+                    const text = await response.text()
+                    return {
+                        status: response.status,
+                        data: text,
+                      }
+                }  
+            }
+        } catch (error) {
+            //console.error("ERROR ", error)
+        }
     }
 
     const convertStringToNumber = (string) => {
         var regex = /\d+/g;
         var matches = string.match(regex);  // creates array from matches
 
-        console.log(parseInt(matches[0]))
+        //console.log(parseInt(matches[0]))
         return parseInt(matches[0] + matches[1])
     }
 
