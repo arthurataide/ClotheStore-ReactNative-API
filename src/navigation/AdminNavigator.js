@@ -12,6 +12,8 @@ import CreateUpdateProductScreen from '../screens/admin/Products/CreateUpdate';
 import OrdersScreen from '../screens/admin/Orders/Orders';
 import UpdateOrderScreen from '../screens/admin/Orders/Update'
 import CustomersScreen from '../screens/admin/Customers/Customers';
+import SalesCategoryScreen from '../screens/admin/Statistics/SalesByCategory'; 
+import SalesProductsScreen from '../screens/admin/Statistics/SalesByProduct'; 
 import { deleteAuthInfo } from "../backend/AuthStorage";
 
 import theme from '../screens/theme';
@@ -93,6 +95,32 @@ function OrdersStack({ navigation }) {
   )
 }
 
+function SalesCategoryStack({ navigation }) {
+  return (
+      <Stack.Navigator  initialRouteName="SalesCat" mode="modal">
+        <Stack.Screen 
+        name="SalesCat" 
+        component={SalesCategoryScreen} 
+        options={{ headerLeft: backButton(navigation) }}
+        />
+      </Stack.Navigator>
+  )
+}
+
+
+function SalesProductsStack({ navigation }) {
+  return (
+      <Stack.Navigator initialRouteName="SalesProd" mode="modal">
+        <Stack.Screen 
+        name="SalesProd" 
+        component={SalesProductsScreen} 
+        options={{ headerLeft: backButton(navigation) }}
+        />
+      </Stack.Navigator>
+  )
+}
+
+
 function CustomersStack({ navigation }) {
   return (
       <Stack.Navigator  initialRouteName="Customers" mode="modal">
@@ -100,6 +128,10 @@ function CustomersStack({ navigation }) {
         name="Customers" 
         component={CustomersScreen} 
         options={{ headerLeft: backButton(navigation) }}
+        />
+        <Stack.Screen 
+        name="Orders-users" 
+        component={OrdersScreen} 
         />
       </Stack.Navigator>
   )
@@ -183,7 +215,7 @@ function CustomDrawerContent({ progress, state, color, navigation, ...props }) {
         inactiveTintColor={'rgba(255,255,255, 0.8)'}
         inactiveBackgroundColor
         activeBackgroundColor 
-        onPress={() => navigation.navigate('Category')}/>
+        onPress={() => navigation.navigate('SalesCategory')}/>
         <DrawerItem 
         label= "Product" 
         icon={({color, size}) => <FontAwesome5 name={"chart-area"} color= {color} size={size}/>}
@@ -191,7 +223,7 @@ function CustomDrawerContent({ progress, state, color, navigation, ...props }) {
         inactiveTintColor={'rgba(255,255,255, 0.8)'}
         inactiveBackgroundColor
         activeBackgroundColor 
-        onPress={() => navigation.navigate('Category')}/>
+        onPress={() => navigation.navigate('SalesProducts')}/>
       </Animated.View>
     </DrawerContentScrollView>
   );
@@ -237,6 +269,16 @@ function App({navigation}) {
         name="Customers" 
         component={CustomersStack} 
         />
+        <Drawer.Screen 
+        name="SalesCategory" 
+        component={SalesCategoryStack}
+        options={{ headerLeft: backButton(navigation) }}
+        /> 
+        <Drawer.Screen 
+        name="SalesProducts" 
+        component={SalesProductsStack}
+        options={{ headerLeft: backButton(navigation) }}
+        /> 
       </Drawer.Navigator>
     //  </NavigationContainer>
   );

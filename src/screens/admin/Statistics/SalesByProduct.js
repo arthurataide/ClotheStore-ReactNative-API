@@ -17,17 +17,10 @@ export default ({navigation}) => {
 
     let [categories, setCategories] = useState([]);
 
-    useEffect(() => {
-        const reload = navigation.addListener("focus", () => {
-            fetchData();
-        });
-        return reload;
-      }, [navigation]);
-
     useLayoutEffect(() => {
-        fetchData()
+        //fetchData()
         navigation.setOptions({
-          title: 'Products',
+          title: 'Sales by Products',
           headerRight: () => (
               <TouchableOpacity onPress={() => navigation.navigate('')}>
                   <Ionicons name = { 'person' } size = { 25 } color={theme.COLORS.WHITE} style={{marginRight: 10}}/>  
@@ -53,51 +46,10 @@ export default ({navigation}) => {
         })
     }
 
-    const updateStatus = async (id, active) => {
-        //console.log(active)
-        const tmp = {
-            active: active
-        }
-        try {
-             const response = await updateData('/products/' + id, tmp);
-
-             if (response) {
-                 //console.log("response ", response.status)
-                 //Error
-                 if (response.status >= 400) {
-                     response.text().then((text) => Toast.showError(text));
-                     return;
-                 }
-                 if (response.status === 204) {
-                     //console.log(cName)
-                     Toast.show("Status updated successfully!")
-                     fetchData()
-                 }
-               }
-        } catch (error) {
-             console.error(error);
-        }       
-    }
 
     const onRefresh = () => {
         fetchData();
     };
-
-    const getCategory = (id) => {
-        var name
-        categories.map((x) => {
-            if(x._id === id){
-                name = x.name
-            }
-        })
-        return name
-    }
-
-    const searchCat = (text) => {
-        return categories.filter((x) => {
-            return x.name.toUpperCase().includes(text.toUpperCase())
-        })
-    }
 
     const searchByNameClassAndCat = (text) => {
         console.log(text)
@@ -128,69 +80,15 @@ export default ({navigation}) => {
         }
     }
 
-    const renderProduct = (item) => {       
-        return (   
-                <View style={[styles.card, {borderLeftWidth: 8, borderLeftColor: item.active ? theme.COLORS.PRIMARY : theme.COLORS.ERROR}]}>
-                    <TouchableOpacity style={[styles.cardContent,{flexDirection:'column', width: "80%"}]} onPress={() => navigation.navigate('CreateUpdate', {item: item})}>
-                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                            <Text style={styles.cardText}>
-                                {item.name}
-                            </Text>
-                        </View>
-                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                            <Text style={styles.cardText}>
-                                {item.classification} | {getCategory(item.category_id)}
-                            </Text>
-                        </View>
-                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                            <Text style={styles.cardText}>
-                                {`C${Util.formatter.format(item.price)}`}
-                            </Text>
-                        </View>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.cardContent,{position: "absolute", right: 10}]} onPress={() => updateStatus(item._id, !item.active)}>
-                        <FontAwesome5 name={"exchange-alt"} size={15} color={theme.COLORS.PRIMARY}/>
-                    </TouchableOpacity>
-                </View>
-        )
-    }
+    
     return (
         <View style = { styles.container }>
-            <SearchBar
-                containerStyle={styles.searchContainer}
-                inputContainerStyle={{ backgroundColor: "transparent" }}
-                placeholder="Find Products..."
-                showCancel={true}
-                searchIcon={{ size: 24 }}
-                cancelIcon={{ size: 24 }}
-                value={searchText}
-                onChangeText={(text) => {
-                    setSearchText(text)
-                    searchByNameClassAndCat(text)
-                }}
-            />
             <View style={styles.info}>
                 <View style={{marginRight: 5 ,height: 15, width: 15, borderRadius: 15, backgroundColor: theme.COLORS.PRIMARY}}/>
                 <Text>Active</Text>
                 <View style={{marginRight: 5 ,marginLeft: 10, height: 15, width: 15, borderRadius: 15, backgroundColor: theme.COLORS.ERROR}}/>
                 <Text>Inactive</Text>
             </View>
-            <FlatList
-                refreshControl={
-                    <RefreshControl
-                    refreshing={loading}
-                    onRefresh={onRefresh}
-                    />
-                }
-                vertical
-                showsVerticalScrollIndicator={false}
-                data={products}
-                renderItem={({ item }) => renderProduct(item)}
-                keyExtractor={(x) => `${x._id}`}
-            />
-            <TouchableOpacity style={styles.create} onPress={() => navigation.navigate('CreateUpdate')}>
-                <FontAwesome5 name={"plus"} color= {"white"} size={25}/>
-            </TouchableOpacity>
         </View>
     );
 };
@@ -236,7 +134,7 @@ const styles = StyleSheet.create({
         width: 60,
         borderRadius: 50,
         backgroundColor: theme.COLORS.PRIMARY,
-        bottom: 20,
+        bottom: 60,
         right: 20,
     },
     searchContainer: {
