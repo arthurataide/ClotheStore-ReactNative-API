@@ -181,7 +181,9 @@ function CustomDrawerContent({ progress, state, color, navigation, ...props }) {
   );
 }
 
-function App() {
+function App({navigation}) {
+
+  //navigation.setOptions({ headerShown: false })
 
   return ( 
     <NavigationContainer theme={MyTheme}>
@@ -220,7 +222,7 @@ function App() {
         component={CustomersStack} 
         />
       </Drawer.Navigator>
-    </NavigationContainer>
+     </NavigationContainer>
   );
 }
 
