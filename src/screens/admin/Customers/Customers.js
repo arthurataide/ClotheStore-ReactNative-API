@@ -97,8 +97,7 @@ export default ({navigation}) => {
     // }
 
     const renderProduct = (item) => {       
-        return (
-            <Swipeout autoClose={true} backgroundColor={'transparent'} buttonWidth= {70} right={[{text: 'Delete', backgroundColor: 'red',onPress:() =>  console.log("delete")}]}>    
+        return (  
                 <View style={[styles.card, {borderLeftWidth: 8, borderLeftColor: item.role === 'customer' ? theme.COLORS.SUCCESS : theme.COLORS.PRIMARY }]}>
                     <View style={[styles.cardContent,{flexDirection:'column', width: "85%"}]}>
                         <View style={{flexDirection: 'row', alignItems: 'center'}}>
@@ -133,11 +132,10 @@ export default ({navigation}) => {
                             </Text>
                         </View>
                     </View>
-                    <TouchableOpacity style={[styles.cardContent,{position: "absolute", right: 10}]} onPress={() => navigation.navigate('Update', {order_id: item._id})}>
+                    <TouchableOpacity style={[styles.cardContent,{position: "absolute", right: 10}]} onPress={() => navigation.navigate('Orders-users', {user_id: item._id})}>
                         <FontAwesome5 name={"list"} size={20} color={theme.COLORS.PRIMARY}/>
                     </TouchableOpacity>
                 </View>
-            </Swipeout>
         )
     }
     return (

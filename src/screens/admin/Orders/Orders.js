@@ -23,9 +23,9 @@ export default ({route, navigation}) => {
     const [selectedId, setSelectedId] = useState('');
 
     useLayoutEffect(() => {
-        fetchData()
+        onRefresh()
         navigation.setOptions({
-          title: 'Orders',
+          title: route.params != undefined ? 'User Orders' : 'Orders',
           headerRight: () => (
               <TouchableOpacity onPress={() => navigation.navigate('')}>
                   <Ionicons name = { 'person' } size = { 25 } color={theme.COLORS.WHITE} style={{marginRight: 10}}/>  
@@ -43,16 +43,38 @@ export default ({route, navigation}) => {
         return reload;
       }, [navigation, orders]);
 
-    const fetchData = async () => {
+    const fetchData = async (id) => {
         setLoading(true)
-        getData('/orders').then((data) => {
-            if (data) {
-                //console.log(data)
-                setOrders(data); 
-                setClearOrders(data);
-                setLoading(false)
-            }
-        });
+
+        if(id != undefined){
+            console.log(id)
+            getData('/orders').then((data) => {
+                //console.log(tmp)
+                if (data) {
+                    var tmp = []
+                    //console.log(data)
+                    data.forEach((x) => {
+                        if (x.user_id == id){
+                            tmp.push(x)
+                        }
+                    });
+                    //console.log(data)
+                    setOrders(tmp); 
+                    setClearOrders(tmp);
+                    setLoading(false)
+                }
+            });
+        } else {
+            getData('/orders').then((data) => {
+                if (data) {
+                    //console.log(data)
+                    setOrders(data); 
+                    setClearOrders(data);
+                    setLoading(false)
+                }
+            });
+        }
+        
     }
 
     const search = (text) => {
@@ -111,7 +133,15 @@ export default ({route, navigation}) => {
     }
 
     const onRefresh = () => {
-        fetchData();
+        if(route.params){
+            let {user_id} = route.params
+            console.log("Params - " + user_id)
+            fetchData(user_id);
+        } else {
+            fetchData();
+            console.log("No Params")
+        }
+        
     };
 
     const getBackground = (status) => {
@@ -238,7 +268,6 @@ export default ({route, navigation}) => {
                 data={orders}
                 renderItem={({ item }) => renderProduct(item)}
                 keyExtractor={(x) => `${x._id}`}
-                style={{marginTop: 5}}
             />
         </View>
     );
