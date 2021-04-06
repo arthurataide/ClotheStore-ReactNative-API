@@ -1,5 +1,5 @@
 import React, {useCallback, useState, useLayoutEffect, useEffect, useRef} from "react";
-import { ScrollView, TextInput, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity } from "react-native";
+import { ScrollView, TextInput, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { TextInputMask } from 'react-native-masked-text'
 import Carousel, {
@@ -12,18 +12,24 @@ import RadioButtonRN from 'radio-buttons-react-native';
 import {Picker} from '@react-native-picker/picker';
 import TabOptions from "../../../components/TabOptions";
 import theme from "../../theme";
+import * as Toast from "../../../components/Toast";
+import { getData, postData, updateData, deleteData  } from "../../../backend/FetchData";
+import { MailComposer } from "expo";
 
 //Screen
 export default ({route, navigation}) => {
     
     const ref = useRef(null);
+    const [loading, setLoading] = useState(false);
     //const { item } = route.params;
 
     const [categories, setCategories] = useState([]);
 
     const [dataImages, setDataImages] = useState([]);
-    const [activeSlide, setActiveSlide] = useState(0);
+    const [readyDataImages, setReadyDataImages] = useState([]);
+    const [activeSlide, setActiveSlide] = useState();
 
+    const [id, setID] = useState('');
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [price, setPrice] = useState('');
@@ -32,7 +38,6 @@ export default ({route, navigation}) => {
     const [selectedClassification, setSelectedClassification] = useState(0);
     const [selectedCategory, setSelectedCategory] = useState();
     const [sizesSelected, setSizesSelected] = useState([]);
-    //const [price, setPrice] = useState('');
 
     useEffect(() => {
         let newTabOptions = [];
@@ -99,6 +104,7 @@ export default ({route, navigation}) => {
             let {item} = route.params
 
             setDataImages(item.pictures)
+            setID(item.code)
             setName(item.name)
             setDescription(item.description)
             setPrice(item.price)
@@ -136,49 +142,171 @@ export default ({route, navigation}) => {
              
         }
     }
+
     const fetchCategories = async () => {
-        fetch(
-            "https://clothestore-wearesouth01-gmailcom.vercel.app/api/categories",
-            {
-              method: "GET",
-              headers: { "Content-Type": "application/json" },
-            }
-        ).then((response) => {
-            if (response) {
-              response.json().then((data) => {
-                //console.log(data);
+        getData('/categories').then((data) => {
+            if (data) {
+                //console.log(data)
                 setCategories(data); 
-              });
             }
         });
     }
 
+    const createImageArray = (newItem) => {
+        console.log("Function")
+        const image = dataImages;
+        image.push(newItem)
+        //console.log(image)
+        return image
+    }
+
+    const uploadImage = async () => {
+        for (const image of dataImages){
+            //console.log(image.base64string)
+            if(image.base64string){
+                var tmpArray = readyDataImages
+                try {
+                    var tmpImage = {
+                        folder: "products",
+                        base64string: image.base64string,
+                    }
+                    //console.log(tmpImage)
+                    const response = await postData('/storage/', tmpImage)
+                    
+                    if (response) {
+                        console.log(response.status)
+                        //console.log('here')
+                        //Error
+                        if (response.status >= 400) {
+                            response.text().then((text) => Toast.showError(text));
+                            return;
+                        }
+                        if (response.status === 200) {
+                            //console.log('here')
+                            response.json().then((data) => {
+                                //console.log(data)
+                                var tmp = {
+                                    name: data.id,
+                                    url: data.url
+                                }
+                                tmpArray.push(tmp)
+                                setReadyDataImages(tmpArray)
+                                //console.log(tmp)
+                                //console.log(tmpArray)
+                            })
+                            //console.log(response)
+                        }
+                    }
+                } catch (error) {
+                    console.error(error);
+                }  
+            }
+        }
+        
+    }
+    const postProduct = async () => {
+        console.log("Starting to upload the product")
+        console.log(readyDataImages)
+    //     const newProduct = {
+    //         code: id,
+    //         name: name,
+    //         description: description,
+    //         price: convertStringToNumber(price),
+    //         stock: parseInt(stock),
+    //         classification: classification,
+    //         category_id: selectedCategory,
+    //         size: sizesSelected,
+    //         pictures: readyDataImages,
+    //         active: true
+    //     }
+    //     try {
+    //         const response = await postData('/products/', newProduct);
+    //         if (response) {
+    //             //Error
+    //             if (response.status >= 400) {
+    //                 response.text().then((text) => Toast.showError(text));
+    //                 return;
+    //             }
+    //             if (response.status === 200) {
+    //                 Toast.show("Category created successfully!")
+    //                 setReadyDataImages([])
+    //                 setLoading(false)
+    //                 navigation.goBack()
+    //             }
+    //           }
+    //    } catch (error) {
+    //         console.error(error);
+    //    }
+    }
+
+    const saveProduct = async () => {
+        setLoading(true)
+        let selectedSizes = tabOptions.filter((x) => x.checked);
+        let tmpArray = []
+        selectedSizes.forEach((x) => {
+            tmpArray.push(x.name)
+        })
+        setSizesSelected(tmpArray);
+
+        await uploadImage().then((x) => {
+            console.log(readyDataImages)
+        })
+        setLoading(false)
+        //console.log(response)
+        //postProduct()
+        //upload newImages
+        //console.log(dataImages.length)
+    }
+
+    const convertStringToNumber = (string) => {
+        var regex = /\d+/g;
+        var matches = string.match(regex);  // creates array from matches
+
+        console.log(parseInt(matches[0]))
+        return parseInt(matches[0] + matches[1])
+    }
+
     const pickImage = async () => {
-        let tmp = tmpPictures
         let result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.All,
           allowsEditing: true,
           aspect: [4, 3],
           quality: 1,
+          base64: true,
         });
     
         //console.log(result);
         //Still have to fix the add image. 
-        console.log("Pictures Array - Before")
-            console.log(tmp)
+        //console.log("Pictures Array - Before")
+            //console.log(tmp)
         if (!result.cancelled) {
             let newImg = {
-                url: result.uri
+                url: result.uri,
+                base64string: "data:image/jpeg;base64," + result.base64,
             }
-            tmp.push(newImg)
-            console.log("Pictures Array")
-            console.log(tmp)
-            setDataImages(tmp);
+            let newArray = createImageArray(newImg);
+            //tmp.push()
+            //console.log("Pictures Array")
+            //console.log(newArray.length)
+            setDataImages([]);
+            setDataImages(newArray);
         }   
     };
 
-    const deleteImg = (url) => {
-        console.log("delete: " + url)
+    const deleteImg = (index) => {
+        console.log("delete: " + index)
+        const newArray = dataImages;
+        if (index > -1) {
+            newArray.splice(index, 1);
+        }
+        setActiveSlide(0);
+        setDataImages([]);
+        
+        setDataImages(newArray);
+
+        if(newArray.length == 0){
+            setDataImages([])
+        }
     }
 
     const renderItem = useCallback(
@@ -192,7 +320,7 @@ export default ({route, navigation}) => {
               shouldComponentUpdate={true}
               {...parallaxProps}
             />
-            <TouchableOpacity style={styles.trash} onPress={() => deleteImg(item.url)}>
+            <TouchableOpacity style={styles.trash} onPress={() => deleteImg(index)}>
                 <FontAwesome5 name={"trash"} size={20} color={theme.COLORS.PRIMARY}/>
             </TouchableOpacity>
           </View>
@@ -207,6 +335,7 @@ export default ({route, navigation}) => {
                     <Carousel
                         ref={ref}
                         data={dataImages}
+                        extraData={dataImages}
                         sliderWidth={screenWidth}
                         sliderHeight={screenWidth}
                         itemWidth={screenWidth - 60}
@@ -217,10 +346,16 @@ export default ({route, navigation}) => {
                         onSnapToItem={(index) => setActiveSlide(index)}
                     />
                     <TouchableOpacity style={styles.pickImg} onPress={pickImage}>
-                        <FontAwesome5 name={"plus"} size={20} color={theme.COLORS.PRIMARY}/>
+                        <FontAwesome5 name={"plus"} size={30} color={theme.COLORS.PRIMARY}/>
                     </TouchableOpacity>
                 </View>
                 <View style={styles.detailsContainer}>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Product ID"
+                        value={id}
+                        onChangeText={(text) => setID(text)}
+                    />
                     <TextInput
                         style={styles.input}
                         placeholder="Product Name"
@@ -300,12 +435,18 @@ export default ({route, navigation}) => {
                             titleColor={theme.COLORS.TITLE}
                         />
                     </View>
-                    
-
                 </View>
             </ScrollView>
-            <TouchableOpacity activeOpacity={0.8} style={styles.saveButton}>
-                <Text style={{color: "white", fontSize: 20, alignItems: "center", alignContent: "center"}} >Save</Text>
+            <TouchableOpacity activeOpacity={0.8} style={styles.saveButton} onPress={() => saveProduct()}>
+                {loading 
+                ?
+                <ActivityIndicator
+                    size="large"
+                    color={theme.COLORS.WHITE}
+                />
+                    :
+                    <Text style={{color: "white", fontSize: 20, alignItems: "center", alignContent: "center"}} >Save</Text>
+                }  
             </TouchableOpacity>
         </View>
     );
@@ -380,10 +521,10 @@ const styles = StyleSheet.create({
         position: "absolute",
         bottom: 10,
         right: 10,
-        height: 40,
-        width: 40,
-        borderRadius: 20,
-        backgroundColor: "rgba(90,45,130, 0.1)",
+        height: 50,
+        width: 50,
+        borderRadius: 30,
+        backgroundColor: "white",
         justifyContent: "center",
         alignItems:"center"
     },
