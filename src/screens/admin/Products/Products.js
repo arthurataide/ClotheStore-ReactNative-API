@@ -17,6 +17,13 @@ export default ({navigation}) => {
 
     let [categories, setCategories] = useState([]);
 
+    useEffect(() => {
+        const reload = navigation.addListener("focus", () => {
+            fetchData();
+        });
+        return reload;
+      }, [navigation]);
+
     useLayoutEffect(() => {
         fetchData()
         navigation.setOptions({
@@ -229,7 +236,7 @@ const styles = StyleSheet.create({
         width: 60,
         borderRadius: 50,
         backgroundColor: theme.COLORS.PRIMARY,
-        bottom: 60,
+        bottom: 20,
         right: 20,
     },
     searchContainer: {

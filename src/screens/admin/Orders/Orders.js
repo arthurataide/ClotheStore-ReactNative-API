@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
         width: 60,
         borderRadius: 50,
         backgroundColor: theme.COLORS.PRIMARY,
-        bottom: 60,
+        bottom: 20,
         right: 20,
     },
     searchContainer: {

@@ -88,10 +88,11 @@ export default ({route, navigation}) => {
         if (x.key == key) {
             if(x.checked){
                 x.checked = false;
+                setSizes(x.name, false);
             }else {
                 x.checked = true;
+                setSizes(x.name, true);
             }
-            
         } 
         newTabOptions.push(x);
         });
@@ -124,7 +125,7 @@ export default ({route, navigation}) => {
                     break;
             }
             setSelectedCategory(item.category_id) 
-            setSizesSelected(item.size) 
+            //setSizesSelected(item.size) 
 
             let newTabOptions = [];
 
@@ -132,13 +133,15 @@ export default ({route, navigation}) => {
                 item.size.forEach((si) => {
                     //console.log("Option")
                     if(si == x.name){
-                        console.log(si + ' equal to ' + x.name)
+                        //console.log(si + ' equal to ' + x.name)
                         x.checked = true;
+                        setSizes(x.name, true)
                     }
                 });
                 newTabOptions.push(x);
             });
             setTabOptions(newTabOptions); 
+            //console.log(sizesSelected)
              
         }
     }
@@ -160,51 +163,6 @@ export default ({route, navigation}) => {
         return image
     }
 
-
-    // const uploadImage = async () => {
-    //     for (const image of dataImages){
-    //         //console.log(image.base64string)
-    //         if(image.base64string){
-    //             var tmpArray = readyDataImages
-    //             try {
-    //                 var tmpImage = {
-    //                     folder: "products",
-    //                     base64string: image.base64string,
-    //                 }
-    //                 //console.log(tmpImage)
-    //                 const response = await postData('/storage/', tmpImage)
-                    
-    //                 if (response) {
-    //                     console.log(response.status)
-    //                     //console.log('here')
-    //                     //Error
-    //                     if (response.status >= 400) {
-    //                         response.text().then((text) => Toast.showError(text));
-    //                         return;
-    //                     }
-    //                     if (response.status === 200) {
-    //                         //console.log('here')
-    //                         response.json().then((data) => {
-    //                             //console.log(data)
-    //                             var tmp = {
-    //                                 name: data.id,
-    //                                 url: data.url
-    //                             }
-    //                             tmpArray.push(tmp)
-    //                             setReadyDataImages(tmpArray)
-    //                             //console.log(tmp)
-    //                             //console.log(tmpArray)
-    //                         })
-    //                         //console.log(response)
-    //                     }
-    //                 }
-    //             } catch (error) {
-    //                 console.error(error);
-    //             }  
-    //         }
-    //     }
-        
-    // }
     const postProduct = async (uploadedImages) => {
         // console.log("Starting to upload the product")
         // console.log(readyDataImages)
@@ -249,20 +207,26 @@ export default ({route, navigation}) => {
        }
     }
 
+    const setSizes = (name, check) => {
+        const array = sizesSelected
+        if(check){
+            array.push(name)
+            setSizesSelected(array)
+            //console.log("Check: " + name)
+        } else {
+            let index = array.indexOf(name);
+            //console.log(index)
+            array.splice(index, 1);
+            //console.log("Uncheck: " + name)
+        }
+        //console.log(array)
+        setSizesSelected(array)
+        //console.log(sizesSelected)
+    }
+
     const saveProduct = async () => {
         setLoading(true)
         console.log('HERE')
-
-        // let selectedSizes = tabOptions.filter((x) => x.checked);
-        // let tmpArray = []
-        // selectedSizes.forEach((x) => {
-        //     tmpArray.push(x.name)
-        // })
-        // setSizesSelected(tmpArray);
-
-        // await uploadImage().then((x) => {
-        //     console.log(readyDataImages)
-        // })
 
         try {
             const promises = dataImages.map( image => uploadImage(image.base64string) )
@@ -310,7 +274,8 @@ export default ({route, navigation}) => {
         var matches = string.match(regex);  // creates array from matches
 
         //console.log(parseInt(matches[0]))
-        return parseInt(matches[0] + matches[1])
+        let num = parseInt(matches[0] + matches[1])
+        return parseFloat(num)
     }
 
     const pickImage = async () => {
