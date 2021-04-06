@@ -2,15 +2,16 @@ import React, {useState, useLayoutEffect, useEffect} from "react";
 import { RefreshControl, TextInput, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity } from "react-native";
 import { SearchBar } from 'react-native-elements';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
-import Swipeout from 'react-native-swipeout';
 import CustomModal from "../../../components/CustomModal";
 import {Picker} from '@react-native-picker/picker';
+import * as Toast from "../../../components/Toast";
+import { getData, postData, updateData, deleteData  } from "../../../backend/FetchData";
 import Moment from 'moment';
 
 import theme from "../../theme";
 
 //Screen
-export default ({navigation}) => {
+export default ({route, navigation}) => {
     const [searchText, setSearchText] = useState("");
     const [modalVisibility, setModalVisibility] = useState(false)
 
@@ -18,13 +19,10 @@ export default ({navigation}) => {
     let [clearOrders, setClearOrders] = useState([]);
     let [loading, setLoading] = useState(false);
 
-    const [products, setProducts] = useState([]);
-
-    const [selectedStatus, setSelectedStatus] = useState();
-
+    const [selectedStatus, setSelectedStatus] = useState('');
+    const [selectedId, setSelectedId] = useState('');
 
     useLayoutEffect(() => {
-
         fetchData()
         navigation.setOptions({
           title: 'Orders',
@@ -38,20 +36,12 @@ export default ({navigation}) => {
 
     const fetchData = async () => {
         setLoading(true)
-        fetch(
-            "https://clothestore-wearesouth01-gmailcom.vercel.app/api/orders",
-            {
-              method: "GET",
-              headers: { "Content-Type": "application/json" },
-            }
-        ).then((response) => {
-            if (response) {
-              response.json().then((data) => {
-                //console.log(data);
+        getData('/orders').then((data) => {
+            if (data) {
+                //console.log(data)
                 setOrders(data); 
                 setClearOrders(data);
                 setLoading(false)
-              });
             }
         });
     }
@@ -61,6 +51,9 @@ export default ({navigation}) => {
         //Add Filter for Order Number and City
         let filtered = orders.filter((x) => {
             var result;
+            if (x.orderId.toUpperCase().includes(text.toUpperCase())){
+                result = x.orderId.toUpperCase().includes(text.toUpperCase())
+            } 
             if (x.fullName.toUpperCase().includes(text.toUpperCase())){
                 result = x.fullName.toUpperCase().includes(text.toUpperCase())
             } 
@@ -81,20 +74,36 @@ export default ({navigation}) => {
         }
     }
 
+    const updateStatus = async () => {
+        //console.log(active)
+        const tmp = {
+            status: selectedStatus
+        }
+        try {
+             const response = await updateData('/orders/' + selectedId, tmp);
+
+             if (response) {
+                 //console.log("response ", response.status)
+                 //Error
+                 if (response.status >= 400) {
+                     response.text().then((text) => Toast.showError(text));
+                     return;
+                 }
+                 if (response.status === 204) {
+                     //console.log(cName)
+                     Toast.show("Status updated successfully!")
+                     setModalVisibility(false)
+                     fetchData()
+                 }
+               }
+        } catch (error) {
+             console.error(error);
+        }       
+    }
+
     const onRefresh = () => {
         fetchData();
     };
-
-    // const getProducts = (items) => {
-    //     console.log(items[0].product_id)
-    //     var tst = "606926c9f774560009eda7c0"
-    //     console.log(products.length)
-    //     let result = products.filter((x) => {
-    //         console.log(x._id)
-    //         return x._id.includes(tst)
-    //     })
-    //     console.log(result[0].pictures)
-    // }
 
     const getBackground = (status) => {
         var color;
@@ -119,14 +128,13 @@ export default ({navigation}) => {
 
     const renderProduct = (item) => {       
         return (
-            <Swipeout autoClose={true} backgroundColor={'transparent'} buttonWidth= {70} right={[{text: 'Delete', backgroundColor: 'red',onPress:() =>  console.log("delete")}]}>    
                 <View style={[styles.card, {borderLeftWidth: 8, borderLeftColor: getBackground(item.status)}]}>
-                    <TouchableOpacity style={[styles.cardContent,{flexDirection:'column', width: "85%"}]} onPress={() => {setModalVisibility(true), setSelectedStatus(item.status)}}>
+                    <TouchableOpacity style={[styles.cardContent,{flexDirection:'column', width: "85%"}]} onPress={() => navigation.navigate('Update', {order_id: item._id})}>
                         <View style={{flexDirection: 'row', alignItems: 'center'}}>
                             <Text style={styles.cardTitles}>
                                 Order: 
                             </Text>
-                            <Text style={styles.cardText}>
+                            <Text style={[styles.cardText, {paddingLeft: 5}]}>
                                 {item.orderId}
                             </Text>
                         </View>
@@ -157,11 +165,10 @@ export default ({navigation}) => {
                             </Text>
                         </View>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.cardContent,{position: "absolute", right: 10}]} onPress={() => navigation.navigate('Update', {order_id: item._id})}>
-                        <FontAwesome5 name={"edit"} size={15} color={theme.COLORS.PRIMARY}/>
+                    <TouchableOpacity style={[styles.cardContent,{position: "absolute", right: 10}]} onPress={() => {setModalVisibility(true), setSelectedStatus(item.status), setSelectedId(item._id)}} >
+                        <FontAwesome5 name={"exchange-alt"} size={15} color={theme.COLORS.PRIMARY}/>
                     </TouchableOpacity>
                 </View>
-            </Swipeout>
         )
     }
     return (
@@ -184,12 +191,12 @@ export default ({navigation}) => {
                 animation={true}
                 visible={modalVisibility}
                 onCancel={() => setModalVisibility(false)}
-                onSave={() => console.log("Status Changed")}
+                onSave={() => updateStatus()}
             >
                 <Picker
                     selectedValue={selectedStatus}
                     onValueChange={(itemValue, itemIndex) =>
-                    setSelectedStatus(itemValue)
+                        setSelectedStatus(itemValue)
                     }
                     style={styles.picker}
                     dropdownIconColor={theme.COLORS.PRIMARY}
@@ -200,6 +207,16 @@ export default ({navigation}) => {
                     <Picker.Item label="Completed" value="COMPLETED" />
                 </Picker>
             </CustomModal>
+            <View style={styles.info}>
+                <View style={{marginRight: 5 ,height: 15, width: 15, borderRadius: 15, backgroundColor: theme.COLORS.ERROR}}/>
+                <Text>Pending</Text>
+                <View style={{marginRight: 5 ,marginLeft: 10, height: 15, width: 15, borderRadius: 15, backgroundColor: theme.COLORS.WARNING}}/>
+                <Text>Ready to Ship</Text>
+                <View style={{marginRight: 5 ,marginLeft: 10, height: 15, width: 15, borderRadius: 15, backgroundColor: theme.COLORS.SUCCESS}}/>
+                <Text>Shipped</Text>
+                <View style={{marginRight: 5 ,marginLeft: 10, height: 15, width: 15, borderRadius: 15, backgroundColor: theme.COLORS.PRIMARY}}/>
+                <Text>Completed</Text>
+            </View>
             <FlatList
                 refreshControl={
                     <RefreshControl
@@ -225,6 +242,12 @@ const styles = StyleSheet.create({
         alignContent:'center',
         backgroundColor: theme.COLORS.WHITE,
     },
+    info: {
+        padding: 10,
+        flexDirection: 'row',
+        justifyContent: "center",
+        alignItems: "center"
+    },  
     card: {
         flex: 1,
         flexDirection: 'row',

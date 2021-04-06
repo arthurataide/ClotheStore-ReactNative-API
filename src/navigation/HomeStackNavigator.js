@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {StatusBar} from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator, HeaderBackButton } from '@react-navigation/stack';
 import HomeScreen from '../screens/store/Home';
 import SignScreen from '../screens/authentication/Signin';
 import RegisterScreen from '../screens/authentication/Register'
@@ -88,7 +88,7 @@ function App() {
         <Stack.Screen 
         name="adminpanel" 
         component={AdminPanel} 
-        //options={{ headerShown: false }}
+        options={{ headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

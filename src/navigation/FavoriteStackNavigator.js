@@ -16,6 +16,7 @@ import AccountDetailScreen from '../screens/account/AccountDetails';
 import AccountOrdersScreen from '../screens/account/AccountOrders'; 
 import AccountAddressScreen from '../screens/account/AccountAddress';
 import AccountOrdersViewScreen from '../screens/account/AccountOrdersView';
+import AdminPanel from '../navigation/AdminNavigator'; 
 
 
 const Stack = createStackNavigator();
@@ -85,6 +86,11 @@ function App() {
         name="ordersview" 
         component={AccountOrdersViewScreen} 
         options={theme.horizontalAnimation}
+        />
+        <Stack.Screen 
+        name="adminpanel" 
+        component={AdminPanel} 
+        options={{ headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

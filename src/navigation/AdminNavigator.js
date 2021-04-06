@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {StatusBar, Text, View, StyleSheet} from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList, DrawerItem } from '@react-navigation/drawer';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator, HeaderBackButton } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { FontAwesome5 } from '@expo/vector-icons'
 import Animated from 'react-native-reanimated'
@@ -12,6 +12,7 @@ import CreateUpdateProductScreen from '../screens/admin/Products/CreateUpdate';
 import OrdersScreen from '../screens/admin/Orders/Orders';
 import UpdateOrderScreen from '../screens/admin/Orders/Update'
 import CustomersScreen from '../screens/admin/Customers/Customers';
+import { deleteAuthInfo } from "../backend/AuthStorage";
 
 import theme from '../screens/theme';
 
@@ -25,34 +26,47 @@ const MyTheme = {
 };
 const Stack = createStackNavigator();
 
-function HomeStack() {
+const backButton = (navigation) => (props)=>(
+  <HeaderBackButton
+    {...props}
+    label="Sign Out"
+    onPress={()=>{
+      deleteAuthInfo().then(()=>navigation.popToTop())
+    }}
+  />
+  )
+
+function HomeStack({ navigation }) {
   return (
       <Stack.Navigator  initialRouteName="Home" mode="modal">
         <Stack.Screen 
         name="Home" 
         component={HomeScreenAdmin} 
+        options={{ headerLeft: backButton(navigation) }}
         />
       </Stack.Navigator>
   )
 }
 
-function CategoryStack() {
+function CategoryStack({ navigation }) {
   return (
       <Stack.Navigator initialRouteName="Category" mode="modal">
         <Stack.Screen 
         name="Category" 
         component={CategoryScreen}  
+        options={{ headerLeft: backButton(navigation) }}
         />
       </Stack.Navigator>
   )
 }
 
-function ProductsStack() {
+function ProductsStack({ navigation }) {
   return (
       <Stack.Navigator initialRouteName="Products" mode="modal">
         <Stack.Screen 
         name="Products" 
         component={ProductsScreen} 
+        options={{ headerLeft: backButton(navigation) }}
         />
         <Stack.Screen 
         name="CreateUpdate" 
@@ -62,12 +76,13 @@ function ProductsStack() {
   )
 }
 
-function OrdersStack() {
+function OrdersStack({ navigation }) {
   return (
       <Stack.Navigator initialRouteName="Orders" mode="modal">
         <Stack.Screen 
         name="Orders" 
         component={OrdersScreen} 
+        options={{ headerLeft: backButton(navigation) }}
         />
         <Stack.Screen 
         name="Update" 
@@ -78,12 +93,13 @@ function OrdersStack() {
   )
 }
 
-function CustomersStack() {
+function CustomersStack({ navigation }) {
   return (
       <Stack.Navigator  initialRouteName="Customers" mode="modal">
         <Stack.Screen 
         name="Customers" 
         component={CustomersScreen} 
+        options={{ headerLeft: backButton(navigation) }}
         />
       </Stack.Navigator>
   )
@@ -186,8 +202,8 @@ function App({navigation}) {
   //navigation.setOptions({ headerShown: false })
 
   return ( 
-    <NavigationContainer theme={MyTheme}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.COLORS.PRIMARY}></StatusBar>
+    // <NavigationContainer theme={MyTheme}>
+    //   <StatusBar barStyle="light-content" backgroundColor={theme.COLORS.PRIMARY}></StatusBar>
       <Drawer.Navigator drawerContent={(props) => <CustomDrawerContent {...props} />}
       minSwipeDistance={20} 
       edgeWidth={120} 
@@ -222,7 +238,7 @@ function App({navigation}) {
         component={CustomersStack} 
         />
       </Drawer.Navigator>
-     </NavigationContainer>
+    //  </NavigationContainer>
   );
 }
 

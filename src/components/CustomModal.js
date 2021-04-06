@@ -2,16 +2,13 @@ import React from "react";
 import {
   View,
   Text,
-  Button,
   StyleSheet,
   Modal,
   Dimensions,
-  StatusBar,
-  SafeAreaView,
   TouchableOpacity,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
-  Pressable
+  Keyboard,
 } from "react-native";
 import theme from "../screens/theme";
 
@@ -22,15 +19,15 @@ export default ({ visible, children, title, onCancel, onSave, animation }) => {
       <Modal visible={visible} animationType={animation ? "slide" : "fade"} transparent={true} statusBarTranslucent={true} onRequestClose={visible}>
         <TouchableOpacity style={styles.modalCenteredView} activeOpacity={1} onPressOut={onCancel}>
         <KeyboardAvoidingView enabled behavior={Platform.OS === "android" ? "padding" : "position"}>
-          <TouchableWithoutFeedback>
+          <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
             <View style={styles.modalView}>
                 <Text style={styles.modalTitle}>{title}</Text>
                 <View style={styles.divider} />
                   {children}
                 <View style={styles.modalButton}>
-                  <Pressable onPress={onSave} style={styles.button}>
+                  <TouchableOpacity onPress={onSave} style={styles.button}>
                     <Text style={styles.buttonText}>SAVE</Text>
-                  </Pressable>
+                  </TouchableOpacity>
                 </View>
             </View>
           </TouchableWithoutFeedback>

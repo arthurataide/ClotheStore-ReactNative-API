@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import Input from "../../components/Input";
 import theme from "../theme";
-import { postData } from "../../backend/FetchData";
+import { getData, postData } from "../../backend/FetchData";
 import { saveAuthInfo } from "../../backend/AuthStorage";
 import * as Toast from "../../components/Toast";
 
@@ -31,11 +31,10 @@ export default ({ route, navigation }) => {
   const checklogin = async () => {
     if (email != "" && password != "") {
 
-      if (email === "admin"){
-        navigation.navigate('adminpanel')
-        return;
-      }
-
+      // if (email === "admin"){
+      //   navigation.navigate('adminpanel')
+      //   return;
+      // }
       const authData = {
         email,
         password,
@@ -48,8 +47,17 @@ export default ({ route, navigation }) => {
           if (response.status >= 200 && response.status <= 300) {
             //success
             const data = await response.json();
+          
+            const userInfo = await getData('/auth/user-info/' + data._id)
+
             //saving auth information (id and token)
-            await saveAuthInfo(data);
+            await saveAuthInfo({...data, role: userInfo.role});
+
+            console.log(userInfo)
+            if (userInfo.role === 'admin'){
+              navigation.replace('adminpanel')
+              return;
+            }
 
             if (nextScreen != undefined) {
               navigation.replace(nextScreen, {

@@ -135,7 +135,7 @@ export default ({ route, navigation }) => {
   const checkAuth = async () => {
     const user = await getAuthInfo()
     if (user){
-      return { route: 'account', user }
+      return { route: user.role === 'admin' ? 'adminpanel' : 'account', user }
     }else{
       return { route: 'signin', user }
     }
