@@ -1,10 +1,10 @@
 import React, {useState, useLayoutEffect, useEffect} from "react";
-import { StatusBar, ScrollView, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity } from "react-native";
+import { RefreshControl, StatusBar, ScrollView, View, StyleSheet, FlatList, Dimensions, Text, TouchableOpacity } from "react-native";
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import {VictoryChart, VictoryBar, VictoryLegend, VictoryAxis, VictoryPie} from 'victory-native';
 import theme from "../theme";
-import Util from "../../helpers/Util"
-import Storage from "../../backend/LocalStorage";
+import { getData  } from "../../backend/FetchData";
+
 
 //Screen
 export default ({navigation}) => {
@@ -12,6 +12,9 @@ export default ({navigation}) => {
     let [productCount, setProductCount] = useState(0)
     let [orderCount, setOrderCount] = useState(0)
     let [pendingOrderCount, setPedingOrderCount] = useState(0)
+
+    let [loading, setLoading] = useState(false);
+
     const dataChart = [
         {x: "Pending", y: 0},
         {x: "Ready", y: 0},
@@ -46,6 +49,7 @@ export default ({navigation}) => {
 
     useLayoutEffect(() => {
         //checkAuth();
+        loadData()
         setDataSalesChart(data)
         setDataOrdersChart(defaultDataChart)
         navigation.setOptions({
@@ -108,10 +112,56 @@ export default ({navigation}) => {
         )
     }
 
+    const loadData = () => {
+        setLoading(true)
+        getData('/categories').then((data) => {
+            if (data) {
+                //console.log(data)
+                setCategoryCount(data.length);
+              setLoading(false);
+            }
+        });
+        setLoading(true)
+        getData('/products').then((data) => {
+            if (data) {
+                //console.log(data)
+                setProductCount(data.length);
+              setLoading(false);
+            }
+        });
+        setLoading(true)
+        getData('/orders').then((data) => {
+            if (data) {
+                //console.log(data)
+                setOrderCount(data.length);
+                let count = data.filter((x) => {
+                    if (x.status === "PENDING"){
+                        return x
+                    }
+                }).length
+                setPedingOrderCount(count)
+              setLoading(false);
+            }
+        });
+    }
+
+    const onRefresh = () => {
+        loadData();
+    };
+
+
   return (
     <View style = { styles.container }>
         <StatusBar barStyle="light-content" backgroundColor={theme.COLORS.PRIMARY}></StatusBar>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView 
+            refreshControl={
+                <RefreshControl
+                refreshing={loading}
+                onRefresh={onRefresh}
+                />
+            }
+            showsVerticalScrollIndicator={false}
+        >
             <View style={styles.cardsContainer}>
                 <View style={{flexDirection: 'row', justifyContent:'space-between'}}>
                     <TouchableOpacity style={styles.menu} onPress={() => navigation.navigate('Category')}>
@@ -131,11 +181,11 @@ export default ({navigation}) => {
                         <Text style={styles.text}>Orders</Text>
                         <Text style={styles.count}>{orderCount}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.menu} >
+                    <View style={styles.menu} >
                         <FontAwesome5 name="list" size={20} color={theme.COLORS.TITLE} />
                         <Text style={styles.text}>Pending Orders</Text>
                         <Text style={styles.count}>{pendingOrderCount}</Text>
-                    </TouchableOpacity>
+                    </View>
                 </View>
                 
             </View>
