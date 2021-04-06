@@ -123,7 +123,8 @@ export default ({ route, navigation }) => {
 
       cartData.forEach((x) => {
         items.push({
-          productId: x.id,
+          product_id: x.id,
+          code: x.code,
           name: x.name,
           quantity: x.quantity,
           size: x.size,
@@ -134,6 +135,7 @@ export default ({ route, navigation }) => {
 
       if (items.length > 0) {
         const order = {
+          user_id: userId,
           orderId: orderId,
           dateTime: dateTime,
           userId: userId,
