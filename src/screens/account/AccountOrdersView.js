@@ -56,8 +56,6 @@ export default ({ route, navigation }) => {
     } catch (error) {
         console.error(error)
     }
-
-    
   }
 
   const renderCard = (item, status) => {
