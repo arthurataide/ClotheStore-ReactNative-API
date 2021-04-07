@@ -22,15 +22,6 @@ export default ({navigation}) => {
     useLayoutEffect(() => {
         //checkAuth();
         onRefresh()
-        
-        navigation.setOptions({
-          title: 'Dashboard',
-          headerRight: () => (
-              <TouchableOpacity onPress={() => navigation.navigate('')}>
-                  <Ionicons name = { 'person' } size = { 25 } color={theme.COLORS.WHITE} style={{marginRight: 10}}/>  
-              </TouchableOpacity>
-          ),
-        })
     }, [navigation]);
 
     useEffect(() => {

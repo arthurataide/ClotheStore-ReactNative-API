@@ -26,11 +26,6 @@ export default ({route, navigation}) => {
         onRefresh()
         navigation.setOptions({
           title: route.params != undefined ? 'User Orders' : 'Orders',
-          headerRight: () => (
-              <TouchableOpacity onPress={() => navigation.navigate('')}>
-                  <Ionicons name = { 'person' } size = { 25 } color={theme.COLORS.WHITE} style={{marginRight: 10}}/>  
-              </TouchableOpacity>
-          ),
         })
     }, [navigation]);
 

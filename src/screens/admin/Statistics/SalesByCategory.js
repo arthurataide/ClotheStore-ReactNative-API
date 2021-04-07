@@ -15,11 +15,6 @@ export default ({navigation}) => {
         fetchData()
         navigation.setOptions({
           title: 'Sales',
-          headerRight: () => (
-              <TouchableOpacity onPress={() => navigation.navigate('')}>
-                  <Ionicons name = { 'person' } size = { 25 } color={theme.COLORS.WHITE} style={{marginRight: 10}}/>  
-              </TouchableOpacity>
-          ),
         })
     }, [navigation]);
 

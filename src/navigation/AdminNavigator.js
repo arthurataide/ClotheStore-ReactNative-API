@@ -44,7 +44,7 @@ function HomeStack({ navigation }) {
         <Stack.Screen 
         name="Home" 
         component={HomeScreenAdmin} 
-        options={{ headerLeft: backButton(navigation) }}
+        options={{ headerLeft: backButton(navigation)}}
         />
       </Stack.Navigator>
   )
