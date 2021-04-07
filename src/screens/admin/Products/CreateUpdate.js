@@ -15,6 +15,7 @@ import theme from "../../theme";
 import * as Toast from "../../../components/Toast";
 import { getData, postData, updateData, deleteData  } from "../../../backend/FetchData";
 import { MailComposer } from "expo";
+import { ReloadInstructions } from "react-native/Libraries/NewAppScreen";
 
 //Screen
 export default ({route, navigation}) => {
@@ -26,9 +27,11 @@ export default ({route, navigation}) => {
     const [categories, setCategories] = useState([]);
 
     const [dataImages, setDataImages] = useState([]);
+    const [urlImages, setUrlImages] = useState([]);
     const [readyDataImages, setReadyDataImages] = useState([]);
     const [activeSlide, setActiveSlide] = useState();
 
+    const [product_id, setProduct_id] = useState('');
     const [id, setID] = useState('');
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
@@ -105,6 +108,7 @@ export default ({route, navigation}) => {
             let {item} = route.params
 
             setDataImages(item.pictures)
+            setProduct_id(item._id)
             setID(item.code)
             setName(item.name)
             setDescription(item.description)
@@ -155,18 +159,17 @@ export default ({route, navigation}) => {
         });
     }
 
-    const createImageArray = (newItem) => {
-        //console.log("Function")
-        const image = dataImages;
-        image.push(newItem)
-        //console.log(image)
-        return image
-    }
-
-    const postProduct = async (uploadedImages) => {
+    const postProduct = async (uploadedImages, urlArray) => {
         // console.log("Starting to upload the product")
         // console.log(readyDataImages)
-        const pictures = []
+        var pictures = []
+        if(route.params){
+            pictures = urlArray
+            console.log(pictures)
+        }
+    
+        //const oldPictures = dataImages;
+
         uploadedImages.forEach(i => {
             if (i != undefined && i.status === 200){
                 pictures.push({
@@ -175,14 +178,14 @@ export default ({route, navigation}) => {
                 })
             }
         })
+        //console.log("pictures")
+        //console.log(pictures)
 
-        console.log("pictures")
-        console.log(pictures)
         const newProduct = {
             code: id,
             name: name,
             description: description,
-            price: convertStringToNumber(price),
+            price: convertStringToNumber(price.toString()),
             stock: parseInt(stock),
             classification: classification,
             category_id: selectedCategory,
@@ -191,20 +194,39 @@ export default ({route, navigation}) => {
             active: true
         }
         try {
-            const response = await postData('/products/', newProduct);
-            if (response) {
-                //Error
-                if (response.status >= 400) {
-                    response.text().then((text) => Toast.showError(text));
-                    return;
-                }
-                if (response.status === 200) {
-                    Toast.show("Category created successfully!")
-                    setReadyDataImages([])
-                    setLoading(false)
-                    navigation.goBack()
-                }
-              }
+            if(route.params){
+                const response = await updateData('/products/' + product_id, newProduct);
+
+                if (response) {
+                    //console.log("response ", response.status)
+                    //Error
+                    if (response.status >= 400) {
+                        response.text().then((text) => Toast.showError(text));
+                        return;
+                    }
+                    if (response.status === 204) {
+                        Toast.show("Category updated successfully!")
+                        setLoading(false)
+                        navigation.goBack()
+                    }
+                  }
+            } else {
+                const response = await postData('/products/', newProduct);
+                if (response) {
+                    //Error
+                    if (response.status >= 400) {
+                        response.text().then((text) => Toast.showError(text));
+                        return;
+                    }
+                    if (response.status === 200) {
+                        Toast.show("Category created successfully!")
+                        setReadyDataImages([])
+                        setLoading(false)
+                        navigation.goBack()
+                    }
+                  }
+            }
+            
        } catch (error) {
             console.error(error);
        }
@@ -232,11 +254,19 @@ export default ({route, navigation}) => {
         console.log('HERE')
 
         try {
-            const promises = dataImages.map( image => uploadImage(image.base64string) )
-            const resultUploadImage = await Promise.all(promises)
-            
-            console.log(resultUploadImage)
-            await postProduct(resultUploadImage)
+            if(route.params){
+                const urlArray = dataImages.filter(x => !x.base64string)
+                // console.log(urlArray)
+                // setUrlImages(urlArray)
+                const newArray = dataImages.filter(x => x.base64string)
+                const promises = newArray.map( image => uploadImage(image.base64string)) 
+                const resultUploadImage = await Promise.all(promises)
+                await postProduct(resultUploadImage, urlArray)
+            } else {
+                const promises = dataImages.map( image => uploadImage(image.base64string)) 
+                const resultUploadImage = await Promise.all(promises)
+                await postProduct(resultUploadImage )
+            }
         } catch (error) {
             console.error(error)
         }finally{
@@ -255,10 +285,6 @@ export default ({route, navigation}) => {
             if (response) {
                 if (response.status == 200){
                     const data = await response.json()
-
-                    console.log("data")
-                    console.log(data)
-
                     return {
                       status: response.status,
                       data,
@@ -281,8 +307,15 @@ export default ({route, navigation}) => {
         var matches = string.match(regex);  // creates array from matches
 
         //console.log(parseInt(matches[0]))
-        let num = parseInt(matches[0] + matches[1])
-        return parseFloat(num)
+        return parseFloat(matches[0]+"."+ matches[1])
+    }
+
+    const createImageArray = (newItem) => {
+
+        const image = dataImages;
+        image.push(newItem)
+ 
+        return image
     }
 
     const pickImage = async () => {
@@ -294,19 +327,12 @@ export default ({route, navigation}) => {
           base64: true,
         });
     
-        //console.log(result);
-        //Still have to fix the add image. 
-        //console.log("Pictures Array - Before")
-            //console.log(tmp)
         if (!result.cancelled) {
             let newImg = {
                 url: result.uri,
                 base64string: "data:image/jpeg;base64," + result.base64,
             }
             let newArray = createImageArray(newImg);
-            //tmp.push()
-            //console.log("Pictures Array")
-            //console.log(newArray.length)
             setDataImages([]);
             setDataImages(newArray);
         }   
@@ -497,6 +523,7 @@ const styles = StyleSheet.create({
     },
     scrollContainer: {
         flex:1,
+        marginTop: 5,
         marginBottom: 60,
     },
     detailsContainer: {

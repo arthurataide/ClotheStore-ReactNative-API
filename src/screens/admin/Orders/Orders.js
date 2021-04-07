@@ -124,7 +124,7 @@ export default ({route, navigation}) => {
                      //console.log(cName)
                      Toast.show("Status updated successfully!")
                      setModalVisibility(false)
-                     fetchData()
+                     onRefresh()
                  }
                }
         } catch (error) {

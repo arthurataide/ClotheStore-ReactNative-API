@@ -9,18 +9,15 @@ import theme from "../../theme";
 
 //Screen
 export default ({navigation}) => {
-    const [searchText, setSearchText] = useState("");
+    const [report, setReport] = useState([])
 
-    let [products, setProducts] = useState([]);
-    let [clearProducts, setClearProducts] = useState([]);
     let [loading, setLoading] = useState(false);
-
-    let [categories, setCategories] = useState([]);
 
     useLayoutEffect(() => {
         //fetchData()
+        onRefresh()
         navigation.setOptions({
-          title: 'Sales by Products',
+          title: 'Sales',
           headerRight: () => (
               <TouchableOpacity onPress={() => navigation.navigate('')}>
                   <Ionicons name = { 'person' } size = { 25 } color={theme.COLORS.WHITE} style={{marginRight: 10}}/>  
@@ -29,66 +26,54 @@ export default ({navigation}) => {
         })
     }, [navigation]);
 
-    const fetchData = async () => {
+    const fetchData = () => {
         setLoading(true)
-        getData('/products').then((data) => {
+        getData('/statisticts/sales/products/').then((data) => {
+            //console.log(tmp)
             if (data) {
-                setProducts(data); 
-                setClearProducts(data);
-            }
-        })
-    
-        getData('/categories').then((data) => {
-            if (data) {
-                setCategories(data); 
+                setReport(data)
                 setLoading(false)
             }
-        })
-    }
-
+        });
+    } 
 
     const onRefresh = () => {
         fetchData();
     };
-
-    const searchByNameClassAndCat = (text) => {
-        console.log(text)
-
-        let filtered = products.filter((x) => {
-            var result;
-            if (x.name.toUpperCase().includes(text.toUpperCase())){
-                result = x.name.toUpperCase().includes(text.toUpperCase())
-            } 
-            else if (searchCat(text).length > 0){
-                //console.log(searchCat(text)[0]._id)
-                //console.log("-------------------")
-                if(x.category_id.includes(searchCat(text)[0]._id)){
-                    result = x.category_id.includes(searchCat(text)[0]._id);
-                }
-            }
-            else if (x.classification.toUpperCase().includes(text.toUpperCase())){
-                result = x.classification.toUpperCase().includes(text.toUpperCase())
-            }
-            //console.log(searchCat(text))
-            return result;
-        })
-        
-        setProducts(filtered)
-        if(text == ''){
-            console.log('Empty')
-            setProducts(clearProducts)
-        }
-    }
-
     
+    const renderItem = (item) => {       
+        return (  
+            <View style={styles.card}>
+                <View style={styles.cardContent}>
+                        <Text style={styles.left}>
+                            {item.name} 
+                        </Text>
+                        <Text style={styles.right}>
+                            {`C${Util.formatter.format(item.sales)}`}
+                        </Text>
+                </View>
+            </View>
+        )
+    }
     return (
         <View style = { styles.container }>
             <View style={styles.info}>
-                <View style={{marginRight: 5 ,height: 15, width: 15, borderRadius: 15, backgroundColor: theme.COLORS.PRIMARY}}/>
-                <Text>Active</Text>
-                <View style={{marginRight: 5 ,marginLeft: 10, height: 15, width: 15, borderRadius: 15, backgroundColor: theme.COLORS.ERROR}}/>
-                <Text>Inactive</Text>
+                <Text style={[styles.left, {fontWeight: '500',}]}>Product</Text>
+                <Text style={[styles.right, {fontWeight: '500',}]}>Total Sales ($)</Text>
             </View>
+            <FlatList
+                refreshControl={
+                    <RefreshControl
+                    refreshing={loading}
+                    onRefresh={onRefresh}
+                    />
+                }
+                vertical
+                showsVerticalScrollIndicator={false}
+                data={report}
+                renderItem={({ item }) => renderItem(item)}
+                keyExtractor={(x) => `${x._id}`}
+            />
         </View>
     );
 };
@@ -117,14 +102,21 @@ const styles = StyleSheet.create({
         borderBottomColor: theme.COLORS.TITLE,
         borderWidth: 1,
         borderRadius: 5,
+        backgroundColor: 'rgb(234,236,244)'
     },
     cardContent: {
-        paddingHorizontal: 15,
+        flex: 1,
+        flexDirection: "row",
+        paddingHorizontal: 20,
         paddingVertical: 15,
     },
-    cardText: {
-        fontSize: 17,
-        fontWeight: '500'
+    left: {
+        fontSize: 18,
+    },
+    right: {
+        flex: 1,
+        textAlign: "right",
+        fontSize: 18,
     },
     create: {
         position: 'absolute',
