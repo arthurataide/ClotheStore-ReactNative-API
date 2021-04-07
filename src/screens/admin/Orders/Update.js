@@ -21,7 +21,6 @@ export default ({route, navigation}) => {
 
 
     const loadItems = async () =>{
-    
         try {
             let newItems = []
             const products = await getData('/products/')
@@ -66,23 +65,14 @@ export default ({route, navigation}) => {
     }, [navigation, order]);
 
     const getOrder = () => {
-        fetch(
-            "https://clothestore-wearesouth01-gmailcom.vercel.app/api/orders/" + order_id,
-            {
-              method: "GET",
-              headers: { "Content-Type": "application/json" },
-            }
-        ).then((response) => {
-            if (response) {
-              response.json().then((data) => {
-                
+        getData('/orders/' + order_id).then((data) => {
+            if (data) {
                 setOrder(data)
                 setItems(data.items)
                 setAddress(data.address)
                 setCity(data.city)
                 setState(data.state)
                 setZip(data.zip)
-              });
             }
         });
     }

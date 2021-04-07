@@ -15,43 +15,14 @@ export default ({navigation}) => {
 
     let [loading, setLoading] = useState(false);
 
-    const dataChart = [
-        {x: "Pending", y: 0},
-        {x: "Ready", y: 0},
-        {x: "Completed", y: 0},
-        {x: "Shipped", y: 0},
-    ]
-
     let [dataSalesChart, setDataSalesChart] = useState();
     let [dataOrdersChart, setDataOrdersChart] = useState();
 
-    const data = [
-        {x: "Jan", y: 5000},
-        {x: "Feb", y: 2500},
-        {x: "Mar", y: 4000},
-        {x: "Apr", y: 2400},
-        {x: "May", y: 2240},
-        {x: "Jun", y: 6000},
-        {x: "Jul", y: 2000},
-        {x: "Aug", y: 1000},
-        {x: "Sep", y: 1500},
-        {x: "Oct", y: null},
-        {x: "Nov", y: null},
-        {x: "Dec", y: null}
-    ]
-    
-    const defaultDataChart = [
-        {x: "Pending", y: 4},
-        {x: "Ready", y: 2},
-        {x: "Completed", y: 1},
-        {x: "Shipped", y: 7},
-    ]
 
     useLayoutEffect(() => {
         //checkAuth();
-        loadData()
-        setDataSalesChart(data)
-        setDataOrdersChart(defaultDataChart)
+        onRefresh()
+        
         navigation.setOptions({
           title: 'Dashboard',
           headerRight: () => (
@@ -61,6 +32,15 @@ export default ({navigation}) => {
           ),
         })
     }, [navigation]);
+
+    useEffect(() => {
+        console.log("useEffect Reload")
+        const reload = navigation.addListener('focus', () => {
+          onRefresh()
+          console.log("Focus")
+        });
+        return reload;
+      }, [navigation]);
 
     const SalesChart = () => {
         return (
@@ -80,6 +60,22 @@ export default ({navigation}) => {
                         duration: 500,
                         onLoad: { duration: 2000 }
                     }}
+                    events={[{
+                        target: "data",
+                        eventHandlers: {
+                          onClick: () => {
+                            return [
+                              {
+                                target: "data",
+                                mutation: (props) => {
+                                  const fill = props.style && props.style.fill;
+                                  return fill === "black" ? null : { style: { fill: "black" } };
+                                }
+                              }
+                            ];
+                          }
+                        }
+                      }]}
                     />
                 </VictoryChart>
             </View>
@@ -91,9 +87,9 @@ export default ({navigation}) => {
                 <VictoryPie
                     animate={{ easing: 'exp' }}
                     data={dataOrdersChart} 
-                    colorScale={[theme.COLORS.WARNING, theme.COLORS.ERROR, theme.COLORS.PRIMARY, theme.COLORS.SUCCESS ]}
+                    colorScale={[theme.COLORS.ERROR, theme.COLORS.WARNING, theme.COLORS.PRIMARY, theme.COLORS.SUCCESS ]}
                     labels={({ datum }) => ""}
-                    padAngle={1}
+                    padAngle={0}
                     innerRadius={115}
                 >
                 </VictoryPie>
@@ -103,8 +99,8 @@ export default ({navigation}) => {
                     orientation="horizontal"
                     data={[
                         { name: "Completed", symbol: { fill: theme.COLORS.PRIMARY } },
-                        { name: "Pending", symbol: { fill: theme.COLORS.WARNING } },
-                        { name: "Shipment", symbol: { fill: theme.COLORS.ERROR} },
+                        { name: "Pending", symbol: { fill: theme.COLORS.ERROR } },
+                        { name: "Shipment", symbol: { fill: theme.COLORS.WARNING} },
                         { name: "Shipped", symbol: { fill: theme.COLORS.SUCCESS } }
                     ]}
                 />
@@ -118,7 +114,7 @@ export default ({navigation}) => {
             if (data) {
                 //console.log(data)
                 setCategoryCount(data.length);
-              setLoading(false);
+                setLoading(false);
             }
         });
         setLoading(true)
@@ -126,7 +122,7 @@ export default ({navigation}) => {
             if (data) {
                 //console.log(data)
                 setProductCount(data.length);
-              setLoading(false);
+                setLoading(false);
             }
         });
         setLoading(true)
@@ -141,6 +137,21 @@ export default ({navigation}) => {
                 }).length
                 setPedingOrderCount(count)
               setLoading(false);
+            }
+        });
+        getData('/statistics/chart/sales-overview').then((data) => {
+            if (data) {
+                //console.log(data)
+                setDataSalesChart(data)
+                
+              setLoading(false);
+            }
+        });
+        getData('/statistics/chart/orders-overview').then((data) => {
+            if (data) {
+                //console.log(data)
+                setDataOrdersChart(data)
+                setLoading(false);
             }
         });
     }

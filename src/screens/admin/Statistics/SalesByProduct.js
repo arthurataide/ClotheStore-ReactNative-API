@@ -28,7 +28,7 @@ export default ({navigation}) => {
 
     const fetchData = () => {
         setLoading(true)
-        getData('/statisticts/sales/products/').then((data) => {
+        getData('/statistics/sales/products/').then((data) => {
             //console.log(tmp)
             if (data) {
                 setReport(data)
