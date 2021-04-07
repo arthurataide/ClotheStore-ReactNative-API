@@ -14,6 +14,7 @@ import { SearchBar } from "react-native-elements";
 import TabOptions from "../../components/TabOptions";
 import { getData } from "../../backend/FetchData";
 import { getAuthInfo } from "../../backend/AuthStorage";
+import { NavigationEvents } from "react-navigation";
 import Carousel, { ParallaxImage } from "react-native-snap-carousel";
 import { Ionicons } from "@expo/vector-icons";
 import theme from "../theme";
@@ -78,12 +79,27 @@ export default ({ navigation }) => {
 
   const ref = useRef(null);
 
+  const load = (payload) => {
+    //console.log("onDidFocus");
+    if (payload && payload.action.routeName === "Search") {
+      loadCategories();
+    }
+  };
+
   const loadCategories = () => {
+    console.log('loading categories')
     setLoading(true)
 
     getData('/categories/').then((data) => {
       if (data) {
-        setCategories(data);
+        var tmp = []
+        data.forEach((x) => {
+          if(x.active){
+            tmp.push(x)
+          }
+        })
+        setCategories([])
+        setCategories(tmp);
         setLoading(false);
       }
     });
@@ -206,6 +222,8 @@ export default ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <NavigationEvents onDidFocus={(payload) => load(payload)}
+      />
       <StatusBar
         barStyle="light-content"
         backgroundColor={theme.COLORS.PRIMARY}

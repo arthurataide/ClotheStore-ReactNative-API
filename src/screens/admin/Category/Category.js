@@ -30,7 +30,6 @@ export default ({navigation}) => {
     }, [])
 
     useLayoutEffect(() => {
-        //checkAuth();
         navigation.setOptions({
           title: 'Categories',
         })

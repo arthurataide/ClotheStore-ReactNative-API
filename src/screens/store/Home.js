@@ -86,7 +86,14 @@ export default ({ navigation }) => {
 
     getData('/products/').then((data) => {
       if (data) {
-        setProducts(data);
+        var tmp = []
+        data.forEach((x) => {
+          if(x.active){
+            tmp.push(x)
+          }
+        })
+        setProducts([])
+        setProducts(tmp);
         setLoading(false);
         loadFavorites();
       }
