@@ -48,9 +48,12 @@ export default ({ navigation }) => {
 
     products.forEach(p => {
       if (p.pictures.length > 0) {
-        tmpProducts.push({productID: p._product_id, url: p.pictures[0].url })
+        tmpProducts.push({productID: p._id, url: p.pictures[0].url })
       }
     });
+
+    console.log("IMAGES")
+    console.log(tmpProducts)
 
     setProductsImages(tmpProducts)
     setLoading(false)
@@ -59,14 +62,16 @@ export default ({ navigation }) => {
   const fetchItemImage = (itemId) => {
     var url = "https://ui-avatars.com/api/?name=Clothe+Store&size=512";
 
-    if (productsImages !== "") {
+    console.log("itemId")
+      console.log(itemId)
       productsImages.forEach((x) => {
         if (x.productID === itemId) {
           url = x.url;
+          return url;
         }
       });
-    }
-    return url;
+    
+      return url;
   };
 
   const countItems = (items) => {
@@ -112,7 +117,7 @@ export default ({ navigation }) => {
         <View style={[styles.cardContainer, { borderRightColor: color }]}>
           <Image
             style={styles.image}
-            source={{ uri: fetchItemImage(item.items[0].productId) }}
+            source={{ uri: fetchItemImage(item.items[0].product_id) }}
           />
           <View style={styles.textContainer}>
             {/* First line  */}
